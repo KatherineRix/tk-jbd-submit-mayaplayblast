@@ -1,4 +1,4 @@
 tk-jbd-submit-mayaplayblast
 ===========================
 
-Playblasting Application
+Playblasting Application for maya in sgtk
