@@ -92,7 +92,7 @@ configuration:
 requires_shotgun_fields:
 
 # More verbose description of this item 
-display_name: "Playblast"
+display_name: "Publish"
 description: "Shot based tools for BBB"
 
 # Required minimum versions for this item to run
