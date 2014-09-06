@@ -16,7 +16,7 @@ INSTALL NOTES:
         #script_name = #[INSERT YOUR SCRIPTNAME] eg Toolkit
         #api_key     = #[INSERT YOUR API KEY HERE] eg 724eea86a7hhhe4816b8f24833112eacf42834a2b5cb85f814f125e96078a3b3
 
-eg:
+    eg:
 
         base_url    = "https://mystudio.shotgunstudio.com"
         script_name = "Toolkit"
