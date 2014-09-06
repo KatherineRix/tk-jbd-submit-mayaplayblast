@@ -25,6 +25,7 @@ eg:
 3. Adding to the asset_step and shot_step:
 
       tk-submit-maya-shotPlayblast:
+
             location:                   {name: tk-jbd-submit-mayaplayblast, type: dev, path: 'path/to/install/directory'}
             display_name:               .Publish TurnTable For Review...
             cameraSuffix:               _shotCam
