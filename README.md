@@ -49,3 +49,10 @@ To avoid this you can copy the application into the studio/install/apps/app_stor
 
 HOW EVER! This will cause tank updates to fail because the applications don't exist in the offical appstore, so before doing a
 tank updates you'll need to remove or change these paths back to dev.
+
+<br>
+<center>
+<img src = "http://www.anim83d.com/images/github/mpb_01.PNG"><br>
+<img src = "http://www.anim83d.com/images/github/mpb_02.PNG"><br>
+More to come...
+</center>
