@@ -4,7 +4,7 @@ tk-submit_mayaplayblast
 Application to playblast assets or shots.
 
 Dep:
-**https://github.com/shotgunsoftware/python-api**
+**[pythion-api](https://github.com/shotgunsoftware/python-api**)
 
 
 #INSTALL NOTES:
