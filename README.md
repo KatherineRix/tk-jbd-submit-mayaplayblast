@@ -49,7 +49,8 @@ To avoid this you can copy the application into the studio/install/apps/app_stor
         type: app_store, version: v0.0.1
 
 HOW EVER!
-*_This will cause tank updates to fail because the applications don't exist in the offical appstore_*
+
+*__This will cause tank updates to fail because the applications don't exist in the official app store__*
 So before doing a tank update you'll need to remove or change these paths back to dev.
 
 <br>
