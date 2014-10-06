@@ -18,6 +18,13 @@ So before doing a tank update you'll need to remove or change these paths back t
 <hr>
 #APPLICATION INSTALL NOTES:
 * **You must have the python-api installed for shotgun!**
+* You must uncomment and change the lines in the python/lib/CONST.py file to be the correct information for your shotgun setup!
+
+        SHOTGUN_CONFIG_NAME     = YOURCONFIGNAME
+        SHOTGUN_URL             = INSERT YOUR URL HERE eg https://mystudio.shotgunstudio.com AS A STRING
+        SHOTGUN_TOOLKIT_NAME    = INSERT YOUR SCRIPTNAME eg Toolkit
+        SHOTGUN_TOOLKIT_API_KEY = INSERT YOUR API KEY HERE eg 724eea86a7hhhe4816b8f24833112eacf42834a2b5cb85f814f125e96078a3b3
+
 * Adding to the asset_step and shot_step:
 ```
       tk-submit-maya-shotPlayblast:
