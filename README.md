@@ -4,19 +4,17 @@ tk-submit_mayaplayblast
 
 Application to playblast assets or shots.
 
-####Dependencies:
-
+####Dependencies:<br>
 **https://github.com/shotgunsoftware/python-api**
-
-####General application notes:
-
+<br>
+####General application notes:<br>
 It is important to note using dev path will cause some **cross platform** issues because you'll end up with a hard coded path.<br>
 To avoid this you can copy the application into the studio/install/apps/app_store/ directory and use:<br>
 `location: {name: tk-jbd-submit-mayaplayblast, type: app_store, version: v0.0.1}`<br>
 **HOW EVER!**<br>
 *__This will cause tank updates to fail because the applications don't exist in the official app store__*<br>
 So before doing a tank update you'll need to remove or change these paths back to dev!<br>
-
+<br>
 <hr>
 #APPLICATION INSTALL NOTES:
 * **You must have the python-api installed for shotgun!**
