@@ -1,14 +1,21 @@
 tk-submit_mayaplayblast
 =====================
-
+**Description:**
 Application to playblast assets or shots.
 
-Dep:
-**[pythion-api](https://github.com/shotgunsoftware/python-api**)
+Deps:
+**https://github.com/shotgunsoftware/python-api**
 
+## General application notes:
+**NOTE on custom application dev paths:**
+It is important to note using dev path will cause some cross platform issues because you'll end up with a hard coded path here
+To avoid this you can copy the application into the studio/install/apps/app_store/ directory and use:
+        `type: app_store, version: v0.0.1`
+HOW EVER!
+*__This will cause tank updates to fail because the applications don't exist in the official app store__*
+So before doing a tank update you'll need to remove or change these paths back to dev.
 
-#INSTALL NOTES:
-
+#APPLICATION INSTALL NOTES:
 * **You must have the python-api installed for shotgun!**
 * You must uncomment and change the lines in the app.py file to be the correct information for your shotgun setup!
 ```
@@ -42,17 +49,6 @@ Dep:
             upload_to_shotgun:          true
             version_number_padding:     3
 ```
-
-NOTE: it is important to note using dev path will cause some cross platform issues because you'll end up with a hard coded path here
-To avoid this you can copy the application into the studio/install/apps/app_store/ directory and use:
-
-        type: app_store, version: v0.0.1
-
-HOW EVER!
-
-*__This will cause tank updates to fail because the applications don't exist in the official app store__*
-So before doing a tank update you'll need to remove or change these paths back to dev.
-
 <br>
 <center>
 <img src = "http://www.anim83d.com/images/github/mpb_01.PNG"><br>
