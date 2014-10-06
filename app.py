@@ -717,6 +717,7 @@ class MainUI(QtGui.QWidget):
                 fields = work_template.get_fields(scene_path)
             except:
                 QtGui.QMessageBox.information(None, "Aborted...", 'Please save your scene first before continuing. And relaunch the playblast tool...')
+                return -1
             publish_path_template = self.app.get_template("movie_path_template")
             publish_path = publish_path_template.apply_fields(fields)
             work_path_template = self.app.get_template("movie_workpath_template")
@@ -812,7 +813,7 @@ class MainUI(QtGui.QWidget):
             cmds.headsUpMessage("Uploading playblast to shotgun for review this may take some time! Be patient...", time = 2)
             event_loop = QtCore.QEventLoop()
             self.lib.log(app = self.app, method = '_finishPlayblast', message = 'event_loop set...', printToLog = False, verbose = self.lib.DEBUGGING)
-            thread = lib.UploaderThread(self.app, sg_version, publish_path, self.upload_to_shotgun)
+            thread = self.lib.UploaderThread(self.app, sg_version, publish_path, self.upload_to_shotgun)
             self.lib.log(app = self.app, method = '_finishPlayblast', message = 'thread set...', printToLog = False, verbose = self.lib.DEBUGGING)
             thread.finished.connect(event_loop.quit)
             thread.start()
