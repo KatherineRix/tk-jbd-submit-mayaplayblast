@@ -16,10 +16,10 @@ from tank.platform import Application
 import tank.templatekey
 ###################################
 ## defaultMayanLibrary imports   ##
-import maya_cam_lib as camLib
-from maya_renderglobals_lib import _setupRenderGlobals
-
-DEBUGGING = True
+try:
+    from maya_renderglobals_lib import _setupRenderGlobals
+except ImportError:
+    pass
 
 class PlayBlastGenerator(Application):
     def init_app(self):
@@ -46,28 +46,28 @@ class MainUI(QtGui.QWidget):
         QtGui.QWidget.__init__(self)
         self.app = app
         self.lib = self.app.import_module("lib")
-        self.lib.log(self.app, method = 'Main_UI', message = 'self.lib: %s' % self.lib, printToLog = False, verbose = DEBUGGING)
-        self.lib.log(self.app, method = 'Main_UI', message = 'INIT PlayBlastGenerator UI', printToLog = False, verbose = DEBUGGING)
+        self.lib.log(self.app, method = 'Main_UI', message = 'self.lib: %s' % self.lib, printToLog = False, verbose = self.lib.DEBUGGING)
+        self.lib.log(self.app, method = 'Main_UI', message = 'INIT PlayBlastGenerator UI', printToLog = False, verbose = self.lib.DEBUGGING)
 
         ## Tell the artist to be patient... eg not genY
         cmds.headsUpMessage("Building UI...", time = 1)
-        self.upload_to_shotgun = self.app.get_setting("upload_to_shotgun")       
-        self.lib.log(self.app, method = 'Main_UI', message = 'USER: %s' % tank.util.get_current_user(self.app.tank), printToLog = False, verbose = DEBUGGING)
+        self.upload_to_shotgun = self.app.get_setting("upload_to_shotgun")
+        self.lib.log(self.app, method = 'Main_UI', message = 'USER: %s' % tank.util.get_current_user(self.app.tank), printToLog = False, verbose = self.lib.DEBUGGING)
         self.currentEditor = self._getEditor()
         ## These two are used for the os module when doing a os.rename for windows
         self.osPathToWorkFile = ''
         self.osPathToPublishFile = ''
-        self.lib.log(app = self.app, method = 'MainUI', message= 'Active Editor: %s' % self.currentEditor, printToLog = False, verbose = DEBUGGING)
+        self.lib.log(app = self.app, method = 'MainUI', message = 'Active Editor: %s' % self.currentEditor, printToLog = False, verbose = self.lib.DEBUGGING)
         ## Check to make sure there is a valid context set
         if self.app.context.entity is None:
             self.lib.log(app = self.app, message = "Cannot load the PlayBlast application! "
                                  "Your current context does not have an entity (e.g. "
                                  "a current Shot, current Asset etc). This app requires "
-                                 "an entity as part of the context in order to work.", printToLog = False, verbose = DEBUGGING)
-        self.lib.log(app = self.app, method = 'MainUI', message= 'ValidContextFound', printToLog = False, verbose = DEBUGGING)
+                                 "an entity as part of the context in order to work.", printToLog = False, verbose = self.lib.DEBUGGING)
+        self.lib.log(app = self.app, method = 'MainUI', message = 'ValidContextFound', printToLog = False, verbose = self.lib.DEBUGGING)
         
         ## Setup the main UI
-        self.lib.log(app = self.app, method = 'MainUI', message= 'Building MainUI', printToLog = False, verbose = DEBUGGING)
+        self.lib.log(app = self.app, method = 'MainUI', message = 'Building MainUI', printToLog = False, verbose = self.lib.DEBUGGING)
         self.mainLayout = QtGui.QVBoxLayout(self)       
         self.infoGroupBox = QtGui.QGroupBox(self)
         self.infoGroupBox.setTitle('Info')
@@ -81,7 +81,7 @@ class MainUI(QtGui.QWidget):
         self.hLayout.addWidget(self.codecLabel)
         self.hLayout.addWidget(self.formatLabel)
 
-        self.lib.log(app = self.app, method = 'MainUI', message= 'Building cameraSettings', printToLog = False, verbose = DEBUGGING)
+        self.lib.log(app = self.app, method = 'MainUI', message = 'Building cameraSettings', printToLog = False, verbose = self.lib.DEBUGGING)
         self.cameraSettingsGroupBox = QtGui.QGroupBox(self)
         self.cameraSettingsGroupBox.setTitle('Camera Settings')
         self.camGridLayout = QtGui.QGridLayout(self.cameraSettingsGroupBox)
@@ -110,7 +110,7 @@ class MainUI(QtGui.QWidget):
                 self.row = self.row + 1
                 self.col = 0
             self.myButton.toggled.connect(self._processRadioButtons)
-        self.lib.log(app = self.app, method = 'MainUI', message= 'Building viewportSettings', printToLog = False, verbose = DEBUGGING)
+        self.lib.log(app = self.app, method = 'MainUI', message = 'Building viewportSettings', printToLog = False, verbose = self.lib.DEBUGGING)
         self.viewportSettingsGroupBox = QtGui.QGroupBox(self)
         self.viewportSettingsGroupBox.setTitle('Viewport Settings')
         self.viewportGridLayout = QtGui.QGridLayout(self.viewportSettingsGroupBox)
@@ -138,7 +138,7 @@ class MainUI(QtGui.QWidget):
                 self.col = 0
             self.myButton.toggled.connect(self._processRadioButtons)
 
-        self.lib.log(app = self.app, method = 'MainUI', message= 'Building renderSettings', printToLog = False, verbose = DEBUGGING)
+        self.lib.log(app = self.app, method = 'MainUI', message = 'Building renderSettings', printToLog = False, verbose = self.lib.DEBUGGING)
         self.rendererSettingsGroupBox = QtGui.QGroupBox(self)
         self.rendererSettingsGroupBox.setTitle('Renderer Settings')
         self.rendererGridLayout = QtGui.QGridLayout(self.rendererSettingsGroupBox)
@@ -165,12 +165,12 @@ class MainUI(QtGui.QWidget):
         self.rendererGridLayout.setColumnStretch (self.maxColumns + 1,1)
 
         if self.app.get_setting('isAsset'):
-            self.lib.log(app = self.app, method = 'MainUI', message= 'Showing Asset UI', printToLog = False, verbose = DEBUGGING)
+            self.lib.log(app = self.app, method = 'MainUI', message = 'Showing Asset UI', printToLog = False, verbose = self.lib.DEBUGGING)
             self._buildAssetTurntableUI()
         else:
-            self.lib.log(app = self.app, method = 'MainUI', message= 'Skipping Asset UI', printToLog = False, verbose = DEBUGGING)
+            self.lib.log(app = self.app, method = 'MainUI', message = 'Skipping Asset UI', printToLog = False, verbose = self.lib.DEBUGGING)
         
-        self.lib.log(app = self.app, method = 'MainUI', message= 'Building Comment Layout', printToLog = False, verbose = DEBUGGING)
+        self.lib.log(app = self.app, method = 'MainUI', message = 'Building Comment Layout', printToLog = False, verbose = self.lib.DEBUGGING)
         ## Now the comment layout
         self.commentGroupBox = QtGui.QGroupBox(self)
         self.commentGroupBox.setTitle('Comment -- required!')
@@ -180,31 +180,31 @@ class MainUI(QtGui.QWidget):
         self.hLayout.addWidget(self.commentLabel)
         self.hLayout.addWidget(self.comment)
         
-        self.lib.log(app = self.app, method = 'MainUI', message= 'Building Submission Layout', printToLog = False, verbose = DEBUGGING)
+        self.lib.log(app = self.app, method = 'MainUI', message = 'Building Submission Layout', printToLog = False, verbose = self.lib.DEBUGGING)
         
         ## Now the submission area
         self.submissionGroupBox = QtGui.QGroupBox(self)
         self.submissionGroupBox.setTitle('Submission')
         self.submissionlayout = QtGui.QHBoxLayout(self.submissionGroupBox)
-        self.lib.log(app = self.app, method = 'MainUI', message= 'self.submissionlayout built...', printToLog = False, verbose = DEBUGGING)
+        self.lib.log(app = self.app, method = 'MainUI', message = 'self.submissionlayout built...', printToLog = False, verbose = self.lib.DEBUGGING)
         ## Quality Spinbox
         self.qualityPercentage = 75
         self.qualityLabel = QtGui.QLabel('Quality:')
         self.qualityPercent = QtGui.QSpinBox(self)
-        self.lib.log(app = self.app, method = 'MainUI', message= 'self.qualityPercent built...', printToLog = False, verbose = DEBUGGING)
+        self.lib.log(app = self.app, method = 'MainUI', message = 'self.qualityPercent built...', printToLog = False, verbose = self.lib.DEBUGGING)
         self.qualityPercent.setRange(0, 100)
-        self.lib.log(app = self.app, method = 'MainUI', message= 'self.qualityPercent setRange...', printToLog = False, verbose = DEBUGGING)
+        self.lib.log(app = self.app, method = 'MainUI', message = 'self.qualityPercent setRange...', printToLog = False, verbose = self.lib.DEBUGGING)
         self.qualityPercent.setValue(75)
-        self.lib.log(app = self.app, method = 'MainUI', message= 'self.qualityPercent built...', printToLog = False, verbose = DEBUGGING)
+        self.lib.log(app = self.app, method = 'MainUI', message = 'self.qualityPercent built...', printToLog = False, verbose = self.lib.DEBUGGING)
         ## Quality Spinbox
         self.sizePercentage = 75
         self.sizeLabel = QtGui.QLabel('Scale:')
         self.sizePercent = QtGui.QSpinBox(self)
-        self.lib.log(app = self.app, method = 'MainUI', message= 'self.sizePercent built...', printToLog = False, verbose = DEBUGGING)
+        self.lib.log(app = self.app, method = 'MainUI', message = 'self.sizePercent built...', printToLog = False, verbose = self.lib.DEBUGGING)
         self.sizePercent.setRange(0, 100)
-        self.lib.log(app = self.app, method = 'MainUI', message= 'self.sizePercent setRange...', printToLog = False, verbose = DEBUGGING)
+        self.lib.log(app = self.app, method = 'MainUI', message = 'self.sizePercent setRange...', printToLog = False, verbose = self.lib.DEBUGGING)
         self.sizePercent.setValue(75)
-        self.lib.log(app = self.app, method = 'MainUI', message= 'self.sizePercent built...', printToLog = False, verbose = DEBUGGING)
+        self.lib.log(app = self.app, method = 'MainUI', message = 'self.sizePercent built...', printToLog = False, verbose = self.lib.DEBUGGING)
         ## Build the upload button
         self.upload = QtGui.QRadioButton('Submit to shotgun?')
         self.upload.setAutoExclusive(False)
@@ -227,18 +227,18 @@ class MainUI(QtGui.QWidget):
 
         ## Check if we are an asset or a shot, and show the option to delete the turnTable group after playblasting
         if self.app.get_setting('isAsset'):
-            self.lib.log(app = self.app, method = 'MainUI', message= 'Adding Asset Submission Stuff', printToLog = False, verbose = DEBUGGING)
+            self.lib.log(app = self.app, method = 'MainUI', message = 'Adding Asset Submission Stuff', printToLog = False, verbose = self.lib.DEBUGGING)
             self.deleteHrcGrp = QtGui.QRadioButton('Delete Turntable Grp?')
             self.deleteHrcGrp.setAutoExclusive(False)
             self.submissionlayout.addWidget(self.deleteHrcGrp)
         else:
-            self.lib.log(app = self.app, method = 'MainUI', message= 'Skipping Asset Submission Stuff', printToLog = False, verbose = DEBUGGING)
+            self.lib.log(app = self.app, method = 'MainUI', message = 'Skipping Asset Submission Stuff', printToLog = False, verbose = self.lib.DEBUGGING)
         
         
         ## Now add the go button regardless of shot or asset step
         self.submissionlayout.addWidget(self.goButton)
         self.submissionlayout.addStretch(1)
-        self.lib.log(app = self.app, method = 'MainUI', message= 'Adding All to mainLayout now..', printToLog = False, verbose = DEBUGGING)
+        self.lib.log(app = self.app, method = 'MainUI', message = 'Adding All to mainLayout now..', printToLog = False, verbose = self.lib.DEBUGGING)
 
         
         ## Now add to the mainLayout
@@ -247,10 +247,10 @@ class MainUI(QtGui.QWidget):
         self.mainLayout.addWidget(self.viewportSettingsGroupBox)
         self.mainLayout.addWidget(self.rendererSettingsGroupBox)
         if self.app.get_setting('isAsset'):
-            self.lib.log(app = self.app, method = 'MainUI', message= 'Adding Asset TurnTable to mainLayout now..', printToLog = False, verbose = DEBUGGING)
+            self.lib.log(app = self.app, method = 'MainUI', message = 'Adding Asset TurnTable to mainLayout now..', printToLog = False, verbose = self.lib.DEBUGGING)
             self.mainLayout.addWidget(self.turnTableGroupBox)
         else:
-            self.lib.log(app = self.app, method = 'MainUI', message= 'Looking for shot camera now..', printToLog = False, verbose = DEBUGGING)
+            self.lib.log(app = self.app, method = 'MainUI', message = 'Looking for shot camera now..', printToLog = False, verbose = self.lib.DEBUGGING)
             self._setupShotCamera()
         self.mainLayout.addWidget(self.commentGroupBox)
         self.mainLayout.addWidget(self.submissionGroupBox)
@@ -258,7 +258,7 @@ class MainUI(QtGui.QWidget):
 
         ## Process all the radio button options
         self._processRadioButtons()
-        self.lib.log(app = self.app, method = 'MainUI', message= '_processRadioButtons successful...', printToLog = False, verbose = DEBUGGING)
+        self.lib.log(app = self.app, method = 'MainUI', message = '_processRadioButtons successful...', printToLog = False, verbose = self.lib.DEBUGGING)
         
         ## Now set the render globals again
         if self.app.get_setting('isAsset'):
@@ -266,7 +266,7 @@ class MainUI(QtGui.QWidget):
         else:
             self._setRenderGlobals(animation = True)
 
-        self.lib.log(app = self.app, method = 'MainUI', message= 'UI Built Successfully...', printToLog = False, verbose = DEBUGGING)
+        self.lib.log(app = self.app, method = 'MainUI', message = 'UI Built Successfully...', printToLog = False, verbose = self.lib.DEBUGGING)
 
     def _uploadToggle(self):
         if self.upload.isChecked():
@@ -281,7 +281,7 @@ class MainUI(QtGui.QWidget):
             return -1
         else:
             currentEditor = cmds.modelPanel(currentPanel, q = True, modelEditor = True)
-            self.lib.log(app = self.app, method = '_getEditor', message= 'Current Editor is: %s' % currentEditor, printToLog = False, verbose = DEBUGGING)
+            self.lib.log(app = self.app, method = '_getEditor', message = 'Current Editor is: %s' % currentEditor, printToLog = False, verbose = self.lib.DEBUGGING)
             self.currentEditor = currentEditor
             return currentEditor
 
@@ -291,93 +291,96 @@ class MainUI(QtGui.QWidget):
         """
         cameraSuffix = self.app.get_setting('cameraSuffix')
         camera = []
-        self.lib.log(app = self.app, method = '_setupShotCamera', message= 'Finding camera..', printToLog = False, verbose = DEBUGGING)
+        self.lib.log(app = self.app, method = '_setupShotCamera', message = 'Finding camera..', printToLog = False, verbose = self.lib.DEBUGGING)
         for each in cmds.ls(type = 'camera'):
             getCamTransform = cmds.listRelatives(each, parent = True)[0]
-            self.lib.log(app = self.app, method = '_setupShotCamera', message= 'getCamTransform.. %s' % getCamTransform, printToLog = False, verbose = DEBUGGING)
+            self.lib.log(app = self.app, method = '_setupShotCamera', message = 'getCamTransform.. %s' % getCamTransform, printToLog = False, verbose = self.lib.DEBUGGING)
             if cmds.objExists('%s.type' % getCamTransform):
                 camera.append(each)
 
-        self.lib.log(app = self.app, method = '_setupShotCamera', message= 'List of cameras found: %s' % camera, printToLog = False, verbose = DEBUGGING)
+        self.lib.log(app = self.app, method = '_setupShotCamera', message = 'List of cameras found: %s' % camera, printToLog = False, verbose = self.lib.DEBUGGING)
         
         if not camera:
-            self.lib.log(app = self.app, method = '_setupShotCamera',  message ="No shotCam found!", printToLog = False, verbose = DEBUGGING)
+            self.lib.log(app = self.app, method = '_setupShotCamera',  message ="No shotCam found!", printToLog = False, verbose = self.lib.DEBUGGING)
             QtGui.QMessageBox.information(None, "Aborted...", 'No shotCam found!!')
             return -1
         else:
             if len(camera) > 1:
-                self.lib.log(app = self.app, method = '_setupShotCamera',  message ="More than one camera found. Please make sure you only have one shot camera in your scene!", printToLog = False, verbose = DEBUGGING)
+                self.lib.log(app = self.app, method = '_setupShotCamera',  message ="More than one camera found. Please make sure you only have one shot camera in your scene!", printToLog = False, verbose = self.lib.DEBUGGING)
                 QtGui.QMessageBox.information(None, "Aborted...", 'Make sure you have only ONE shot camera in the scene!')
                 return -1
             else:
                 cam = camera[0]
                 cmds.modelEditor(self.currentEditor, edit = True, camera = cam)
                 getCamTransform = cmds.listRelatives(cam, parent = True)[0] ## need to send the camera transform to this function
-                camLib._setCameraDefaults(getCamTransform)
+                self.lib._setCameraDefaults(getCamTransform)
 
     def _buildAssetTurntableUI(self):
-        self.lib.log(app = self.app, method = '_buildAssetTurntableUI', message= 'Entering _buildAssetTurntableUI now....', printToLog = False, verbose = DEBUGGING)
+        self.lib.log(app = self.app, method = '_buildAssetTurntableUI', message = 'Entering _buildAssetTurntableUI now....', printToLog = False, verbose = self.lib.DEBUGGING)
         self.turnTableGroupBox = QtGui.QGroupBox(self)
         self.turnTableGroupBox.setTitle('Turn Table Setup')
         self.turnTableGridLayout = QtGui.QGridLayout(self.turnTableGroupBox)
         self.buildTurnTableButton = QtGui.QPushButton('BuildTurnTable')
-        self.lib.log(app = self.app, method = '_buildAssetTurntableUI', message= 'Building InputPrompt now....', printToLog = False, verbose = DEBUGGING)
+        self.lib.log(app = self.app, method = '_buildAssetTurntableUI', message = 'Building InputPrompt now....', printToLog = False, verbose = self.lib.DEBUGGING)
         self.inputPromptUI = self.lib.InputPrompt(self, label = 'TurnTableGroup', defaultText = '', getSelected = True)
-        self.lib.log(app = self.app, method = '_buildAssetTurntableUI', message= 'self.inputPromptUI .... %s' % self.inputPromptUI, printToLog = False, verbose = DEBUGGING)
+        self.lib.log(app = self.app, method = '_buildAssetTurntableUI', message = 'self.inputPromptUI .... %s' % self.inputPromptUI, printToLog = False, verbose = self.lib.DEBUGGING)
         
         self.frameRangeLayout = QtGui.QHBoxLayout(self)
-        self.lib.log(app = self.app, method = '_buildAssetTurntableUI', message= 'Building frameRange layout now....', printToLog = False, verbose = DEBUGGING)
+        self.lib.log(app = self.app, method = '_buildAssetTurntableUI', message = 'Building frameRange layout now....', printToLog = False, verbose = self.lib.DEBUGGING)
         self.startFrameLabel = QtGui.QLabel('Start Frame:')
         ## Start Frame
         self.startFrame = QtGui.QSpinBox(self)
         self.startFrame.setRange(-10000000, 100000000)
         self.startFrame.setValue(1)
-        self.lib.log(app = self.app, method = '_buildAssetTurntableUI', message= 'self.startFrame Done....', printToLog = False, verbose = DEBUGGING)
+        self.lib.log(app = self.app, method = '_buildAssetTurntableUI', message = 'self.startFrame Done....', printToLog = False, verbose = self.lib.DEBUGGING)
         ## Frame count
         self.totalFramesLabel = QtGui.QLabel('Total # of Frames:')
         self.totalFrames = QtGui.QSpinBox(self)
         self.totalFrames.setRange(0, 100000000)
         self.totalFrames.setValue(100)
-        self.lib.log(app = self.app, method = '_buildAssetTurntableUI', message= 'self.totalFrames Done....', printToLog = False, verbose = DEBUGGING)
+        self.lib.log(app = self.app, method = '_buildAssetTurntableUI', message = 'self.totalFrames Done....', printToLog = False, verbose = self.lib.DEBUGGING)
         self.frameRangeLayout.addWidget(self.startFrameLabel)
         self.frameRangeLayout.addWidget(self.startFrame)
         self.frameRangeLayout.addWidget(self.totalFramesLabel)
         self.frameRangeLayout.addWidget(self.totalFrames)
-        self.lib.log(app = self.app, method = '_buildAssetTurntableUI', message= 'frameRangeLayout widgets Done....', printToLog = False, verbose = DEBUGGING)
+        self.lib.log(app = self.app, method = '_buildAssetTurntableUI', message = 'frameRangeLayout widgets Done....', printToLog = False, verbose = self.lib.DEBUGGING)
         ## Now the go button
         self.buildTurnTableButton = QtGui.QPushButton('Setup Turn Table')
-        self.lib.log(app = self.app, method = '_buildAssetTurntableUI', message= 'self.buildTurnTableButton Done....', printToLog = False, verbose = DEBUGGING)
+        self.lib.log(app = self.app, method = '_buildAssetTurntableUI', message = 'self.buildTurnTableButton Done....', printToLog = False, verbose = self.lib.DEBUGGING)
         self.buildTurnTableButton.pressed.connect(partial(self._setupTurnTable, self.inputPromptUI, self.startFrame, self.totalFrames))
         ## Now add the ui elements back to the layout
-        self.lib.log(app = self.app, method = '_buildAssetTurntableUI', message= 'self.turnTableGridLayout building now....', printToLog = False, verbose = DEBUGGING)
+        self.lib.log(app = self.app, method = '_buildAssetTurntableUI', message = 'self.turnTableGridLayout building now....', printToLog = False, verbose = self.lib.DEBUGGING)
         self.turnTableGridLayout.addWidget(self.inputPromptUI, 0,0)
         self.turnTableGridLayout.addLayout(self.frameRangeLayout, 1,0)
         self.turnTableGridLayout.addWidget(self.buildTurnTableButton, 2,0)
-        self.lib.log(app = self.app, method = '_buildAssetTurntableUI', message= 'self.turnTableGridLayout Done....', printToLog = False, verbose = DEBUGGING)
+        self.lib.log(app = self.app, method = '_buildAssetTurntableUI', message = 'self.turnTableGridLayout Done....', printToLog = False, verbose = self.lib.DEBUGGING)
 
     def _setRenderGlobals(self, animation):
-        self.lib.log(app = self.app, method = '_setRenderGlobals', message= 'Setting render globals now..', printToLog = False, verbose = DEBUGGING)
+        self.lib.log(app = self.app, method = '_setRenderGlobals', message = 'Setting render globals now..', printToLog = False, verbose = self.lib.DEBUGGING)
         self.renderWidth = self.app.get_setting('movie_width')
         self.renderHeight = self.app.get_setting('movie_height')
-        self.lib.log(app = self.app, method = '_setRenderGlobals', message= 'self.renderWidth.. %s' % self.renderWidth, printToLog = False, verbose = DEBUGGING)
-        self.lib.log(app = self.app, method = '_setRenderGlobals', message= 'self.renderHeight.. %s' % self.renderHeight, printToLog = False, verbose = DEBUGGING)
+        self.lib.log(app = self.app, method = '_setRenderGlobals', message = 'self.renderWidth.. %s' % self.renderWidth, printToLog = False, verbose = self.lib.DEBUGGING)
+        self.lib.log(app = self.app, method = '_setRenderGlobals', message = 'self.renderHeight.. %s' % self.renderHeight, printToLog = False, verbose = self.lib.DEBUGGING)
         
-        ## Now push that info through to the render globals setup
-        _setupRenderGlobals(width = self.renderWidth, height = self.renderHeight, animation = animation)
-        self.lib.log(app = self.app, method = '_setRenderGlobals', message= 'DONE setting render globals..', printToLog = False, verbose = DEBUGGING)
+        ## Now try to setup the renderglobals if using the default config
+        try:
+            _setupRenderGlobals(width = self.renderWidth, height = self.renderHeight, animation = animation)
+        except:
+            pass
+        self.lib.log(app = self.app, method = '_setRenderGlobals', message = 'DONE setting render globals..', printToLog = False, verbose = self.lib.DEBUGGING)
 
     def _setupTurnTable(self, geoGroup = '', start = '', frames = ''):
         """
         Builds a camera for turn table
         """
-        self.lib.log(app = self.app, message = '_setupTurnTable run...', printToLog = False, verbose = DEBUGGING)
+        self.lib.log(app = self.app, message = '_setupTurnTable run...', printToLog = False, verbose = self.lib.DEBUGGING)
         geoGroup = geoGroup.getText()
         start = start.value()
         frames = frames.value()
         
         ## Now check for existing and delete it.
         if cmds.objExists('turnTable_hrc'):
-            self.lib.log(app = self.app, message = 'Removed existing turnTable...', printToLog = False, verbose = DEBUGGING)
+            self.lib.log(app = self.app, message = 'Removed existing turnTable...', printToLog = False, verbose = self.lib.DEBUGGING)
             cmds.delete('turnTable_hrc')
         
         ## Build the camera for the turnTable
@@ -385,7 +388,7 @@ class MainUI(QtGui.QWidget):
         cmds.camera()
         cmds.rename('camera1', cameraName)
         ## Now change the settings of the camera to the default settings
-        camLib._setCameraDefaults(cameraName)
+        self.lib._setCameraDefaults(cameraName)
         
         ## Setup the group
         cmds.group(cameraName, n = 'turnTable_hrc')
@@ -417,8 +420,8 @@ class MainUI(QtGui.QWidget):
     def _processRadioButtons(self):
         self.editor = self.currentEditor
         radioButtons = [self.camRadioButtons, self.viewportRadioButtons, self.rendererRadioButtons]
-        self.lib.log(app = self.app, method = '_processRadioButtons', message= 'Processing the radioButtonStates', printToLog = False, verbose = DEBUGGING)
-        self.lib.log(app = self.app, method = '_processRadioButtons', message= 'CurrentEditor is: %s' % self.currentEditor, printToLog = False, verbose = DEBUGGING)
+        self.lib.log(app = self.app, method = '_processRadioButtons', message = 'Processing the radioButtonStates', printToLog = False, verbose = self.lib.DEBUGGING)
+        self.lib.log(app = self.app, method = '_processRadioButtons', message = 'CurrentEditor is: %s' % self.currentEditor, printToLog = False, verbose = self.lib.DEBUGGING)
         for eachSettingList in radioButtons:
             for eachSetting in eachSettingList:
                 if eachSetting.text() == 'NURBS Curves':
@@ -670,7 +673,7 @@ class MainUI(QtGui.QWidget):
                         cmds.setAttr("hardwareRenderingGlobals.ssaoFilterRadius", 10)
                         cmds.setAttr("hardwareRenderingGlobals.ssaoSamples", 32)
                         cmds.setAttr("hardwareRenderingGlobals.consolidateWorld", 1)
-        self.lib.log(app = self.app, method = '_processRadioButtons', message= 'Done processing each radio setting', printToLog = False, verbose = DEBUGGING)
+        self.lib.log(app = self.app, method = '_processRadioButtons', message = 'Done processing each radio setting', printToLog = False, verbose = self.lib.DEBUGGING)
         
     def doPlayblast(self):
         """
@@ -679,7 +682,7 @@ class MainUI(QtGui.QWidget):
         comment = self.comment.text() 
         if self.upload.isChecked():
             if comment == '':
-                self.lib.log(app = self.app, message = 'You must set a valid comment for review!', printToLog = False, verbose = DEBUGGING)
+                self.lib.log(app = self.app, message = 'You must set a valid comment for review!', printToLog = False, verbose = self.lib.DEBUGGING)
                 QtGui.QMessageBox.information(None, "Aborted...", 'Please put a valid comment.')
                 return -1
             
@@ -698,16 +701,16 @@ class MainUI(QtGui.QWidget):
         # Is the app configured to do anything?
         store_on_disk = self.app.get_setting("store_on_disk")
         if not self.upload_to_shotgun and not store_on_disk:
-            self.lib.log(app = self.app, message ="App is not configured to store playblast on disk nor upload to shotgun! Check the shot_step.yml to fix this.", printToLog = False, verbose = DEBUGGING)
+            self.lib.log(app = self.app, message ="App is not configured to store playblast on disk nor upload to shotgun! Check the shot_step.yml to fix this.", printToLog = False, verbose = self.lib.DEBUGGING)
             return None
         
         ## Double check the artist wants to playblast.
         self.reply = QtGui.QMessageBox.question(None, 'Continue with playblast?', "Do you wish to playblast now? \nNow is a good time to save a new vers scene if you haven't already...", QtGui.QMessageBox.Ok, QtGui.QMessageBox.Cancel)
         if self.reply == QtGui.QMessageBox.Ok:
             ## Check the playblast ranged against shotguns cut in and out.
-            self.lib.log(app = self.app, method = '_setupPlayblast', message = 'QtGui.QMessageBox.Ok accepted', printToLog = False, verbose = DEBUGGING)
+            self.lib.log(app = self.app, method = '_setupPlayblast', message = 'QtGui.QMessageBox.Ok accepted', printToLog = False, verbose = self.lib.DEBUGGING)
             self._setFrameRanges(isAsset)
-            self.lib.log(app = self.app, method = '_setupPlayblast', message = '_setFrameRanges finished', printToLog = False, verbose = DEBUGGING)
+            self.lib.log(app = self.app, method = '_setupPlayblast', message = '_setFrameRanges finished', printToLog = False, verbose = self.lib.DEBUGGING)
             ## Now setup the output path for the mov
             scene_path = os.path.abspath(cmds.file(query=True, sn= True))
             try:
@@ -718,7 +721,7 @@ class MainUI(QtGui.QWidget):
             publish_path = publish_path_template.apply_fields(fields)
             work_path_template = self.app.get_template("movie_workpath_template")
             work_path = work_path_template.apply_fields(fields)
-            self.lib.log(app = self.app, message = 'work_path: %s' % work_path, printToLog = False, verbose = DEBUGGING)
+            self.lib.log(app = self.app, message = 'work_path: %s' % work_path, printToLog = False, verbose = self.lib.DEBUGGING)
             
             if sys.platform == 'win32':
                 self.osPathToWorkFile = r'%s' % work_path
@@ -729,25 +732,25 @@ class MainUI(QtGui.QWidget):
             getLastFrame = cmds.playbackOptions(query = True, animationEndTime = True)
 
             ## logging Info
-            self.lib.log(app = self.app, method = '_setupPlayblast', message = 'Width: \t\t%s' % width, printToLog = False, verbose = DEBUGGING)
-            self.lib.log(app = self.app, method = '_setupPlayblast', message = 'Height: \t%s' % height, printToLog = False, verbose = DEBUGGING)
-            self.lib.log(app = self.app, method = '_setupPlayblast', message = 'Comment: \t%s' % comment, printToLog = False, verbose = DEBUGGING)
-            self.lib.log(app = self.app, method = '_setupPlayblast', message = 'isAsset: \t%s' % isAsset, printToLog = False, verbose = DEBUGGING)
-            self.lib.log(app = self.app, method = '_setupPlayblast', message = 'UserName: \t%s' % user, printToLog = False, verbose = DEBUGGING)
-            self.lib.log(app = self.app, method = '_setupPlayblast', message = 'scene_path: \t%s' % scene_path, printToLog = False, verbose = DEBUGGING)
-            self.lib.log(app = self.app, method = '_setupPlayblast', message = 'fields: \t%s' % fields, printToLog = False, verbose = DEBUGGING)
-            self.lib.log(app = self.app, method = '_setupPlayblast', message = 'WorkTemplate: \t%s' %  work_template, printToLog = False, verbose = DEBUGGING)
-            self.lib.log(app = self.app, method = '_setupPlayblast', message = 'publish_path_template: \t%s' % publish_path_template, printToLog = False, verbose = DEBUGGING)
-            self.lib.log(app = self.app, method = '_setupPlayblast', message = 'publish_path: \t%s' % publish_path, printToLog = False, verbose = DEBUGGING)
-            self.lib.log(app = self.app, method = '_setupPlayblast', message = 'work_path_template: \t%s' % work_path_template, printToLog = False, verbose = DEBUGGING)
-            self.lib.log(app = self.app, method = '_setupPlayblast', message = 'work_path: \t%s' % work_path, printToLog = False, verbose = DEBUGGING)
-            self.lib.log(app = self.app, method = '_setupPlayblast', message = 'osPathToWorkFile: \t%s' % self.osPathToWorkFile.replace('\\', '/'), printToLog = False, verbose = DEBUGGING)
-            self.lib.log(app = self.app, method = '_setupPlayblast', message = 'osPathToPublishFile: \t%s' % self.osPathToPublishFile.replace('\\', '/'), printToLog = False, verbose = DEBUGGING)
+            self.lib.log(app = self.app, method = '_setupPlayblast', message = 'Width: \t\t%s' % width, printToLog = False, verbose = self.lib.DEBUGGING)
+            self.lib.log(app = self.app, method = '_setupPlayblast', message = 'Height: \t%s' % height, printToLog = False, verbose = self.lib.DEBUGGING)
+            self.lib.log(app = self.app, method = '_setupPlayblast', message = 'Comment: \t%s' % comment, printToLog = False, verbose = self.lib.DEBUGGING)
+            self.lib.log(app = self.app, method = '_setupPlayblast', message = 'isAsset: \t%s' % isAsset, printToLog = False, verbose = self.lib.DEBUGGING)
+            self.lib.log(app = self.app, method = '_setupPlayblast', message = 'UserName: \t%s' % user, printToLog = False, verbose = self.lib.DEBUGGING)
+            self.lib.log(app = self.app, method = '_setupPlayblast', message = 'scene_path: \t%s' % scene_path, printToLog = False, verbose = self.lib.DEBUGGING)
+            self.lib.log(app = self.app, method = '_setupPlayblast', message = 'fields: \t%s' % fields, printToLog = False, verbose = self.lib.DEBUGGING)
+            self.lib.log(app = self.app, method = '_setupPlayblast', message = 'WorkTemplate: \t%s' %  work_template, printToLog = False, verbose = self.lib.DEBUGGING)
+            self.lib.log(app = self.app, method = '_setupPlayblast', message = 'publish_path_template: \t%s' % publish_path_template, printToLog = False, verbose = self.lib.DEBUGGING)
+            self.lib.log(app = self.app, method = '_setupPlayblast', message = 'publish_path: \t%s' % publish_path, printToLog = False, verbose = self.lib.DEBUGGING)
+            self.lib.log(app = self.app, method = '_setupPlayblast', message = 'work_path_template: \t%s' % work_path_template, printToLog = False, verbose = self.lib.DEBUGGING)
+            self.lib.log(app = self.app, method = '_setupPlayblast', message = 'work_path: \t%s' % work_path, printToLog = False, verbose = self.lib.DEBUGGING)
+            self.lib.log(app = self.app, method = '_setupPlayblast', message = 'osPathToWorkFile: \t%s' % self.osPathToWorkFile.replace('\\', '/'), printToLog = False, verbose = self.lib.DEBUGGING)
+            self.lib.log(app = self.app, method = '_setupPlayblast', message = 'osPathToPublishFile: \t%s' % self.osPathToPublishFile.replace('\\', '/'), printToLog = False, verbose = self.lib.DEBUGGING)
             
             ## Now check for existing playblast. We check the publish folder because the working file gets moved into publish on upload.
             ## The playblast tool overwrites any playblasts it does with the same version name in the working directory.
             if os.path.exists(publish_path):
-                self.lib.log(app = self.app, message = "Existing published playblast found with same version number....", printToLog = False, verbose = DEBUGGING)
+                self.lib.log(app = self.app, message = "Existing published playblast found with same version number....", printToLog = False, verbose = self.lib.DEBUGGING)
                 self.reply = QtGui.QMessageBox.question(None, 'IMPORTANT!!!!!', "Existing published playblast found!!!!\nIf for some reason the previous blast didn't upload click okay to redo the playblast now.\nOtherwise CANCEL NOW and save a new version of your scene or you will end up with duplicates in shotgun!", QtGui.QMessageBox.Ok, QtGui.QMessageBox.Cancel)
                 if self.reply == QtGui.QMessageBox.Ok:
                     ################################################
@@ -757,7 +760,7 @@ class MainUI(QtGui.QWidget):
                         os.remove(self.osPathToPublishFile.replace('\\', '/'))
                         self._finishPlayblast(publish_path, width, height, store_on_disk, getFirstFrame, getLastFrame, comment, user, work_path)
                     except:
-                        self.lib.log(app = self.app, method = '_setupPlayblast', message = 'FAILED: \tTo remove osPathToPublishFile', printToLog = False, verbose = DEBUGGING)
+                        self.lib.log(app = self.app, method = '_setupPlayblast', message = 'FAILED: \tTo remove osPathToPublishFile', printToLog = False, verbose = self.lib.DEBUGGING)
                         return -1
                 else:
                     return -1
@@ -766,34 +769,34 @@ class MainUI(QtGui.QWidget):
                 
     def _finishPlayblast(self, publish_path, width, height, store_on_disk, getFirstFrame, getLastFrame, comment, user, work_path):
         ## Now do the playblast if the user selected okay or there wasn't a duplicate found.
-        self.lib.log(app = self.app, method = '_finishPlayblast', message = 'Duplicate check passed. Playblasting...', printToLog = False, verbose = DEBUGGING)
+        self.lib.log(app = self.app, method = '_finishPlayblast', message = 'Duplicate check passed. Playblasting...', printToLog = False, verbose = self.lib.DEBUGGING)
         
         ## Now render the playblast
         self._render_pb_in_maya(getFirstFrame, getLastFrame, publish_path, work_path, width, height)
-        self.lib.log(app = self.app, method = '_finishPlayblast', message = 'PlayBlast finished..', printToLog = False, verbose = DEBUGGING)
+        self.lib.log(app = self.app, method = '_finishPlayblast', message = 'PlayBlast finished..', printToLog = False, verbose = self.lib.DEBUGGING)
         
         ## Check if uploading is enabled in the UI and do the uploading if it is, else we will finish up here.
         if self.upload.isChecked():
-            self.lib.log(app = self.app, method = '_finishPlayblast', message = 'Upload is turned on.. processing version to sg now..', printToLog = False, verbose = DEBUGGING)
+            self.lib.log(app = self.app, method = '_finishPlayblast', message = 'Upload is turned on.. processing version to sg now..', printToLog = False, verbose = self.lib.DEBUGGING)
             
             ## Move the working file to the publish path
             try:
-                self.lib.log(app = self.app, method = '_finishPlayblast', message = 'RENAMING: osPathToWorkFile to osPathToPublishFile', printToLog = False, verbose = DEBUGGING)
+                self.lib.log(app = self.app, method = '_finishPlayblast', message = 'RENAMING: osPathToWorkFile to osPathToPublishFile', printToLog = False, verbose = self.lib.DEBUGGING)
                 os.rename(self.osPathToWorkFile.replace('\\', '/'), self.osPathToPublishFile.replace('\\', '/'))
             except:
-                self.lib.log(app = self.app, method = '_setupPlayblast', message = 'FAILED: \tTo rename osPathToWorkFile to osPathToPublishFile', printToLog = False, verbose = DEBUGGING)
+                self.lib.log(app = self.app, method = '_setupPlayblast', message = 'FAILED: \tTo rename osPathToWorkFile to osPathToPublishFile', printToLog = False, verbose = self.lib.DEBUGGING)
                 ## This could fail because the process is in use, and not the fact a freaking published file exists, due to maya trying to open the playblast once it's done!
                 ## So a quick check here to make sure it doesn't exist.. if it doesn't and it failed COPY it instead. Fucking maya...
                 if not os.path.exists(publish_path):
-                    self.lib.log(app = self.app, method = '_setupPlayblast', message = 'FAILED: \tTo rename because file is IN USE. Using shutil to copy instead.', printToLog = False, verbose = DEBUGGING)
+                    self.lib.log(app = self.app, method = '_setupPlayblast', message = 'FAILED: \tTo rename because file is IN USE. Using shutil to copy instead.', printToLog = False, verbose = self.lib.DEBUGGING)
                     shutil.copyfile(self.osPathToWorkFile.replace('\\', '/'), self.osPathToPublishFile.replace('\\', '/'))
                 else:
-                    self.lib.log(app = self.app, method = '_setupPlayblast', message = 'FAILED: \tTo rename because file already exists.. how the heck the remove previously failed.. who knows.. but try again now..', printToLog = False, verbose = DEBUGGING)
+                    self.lib.log(app = self.app, method = '_setupPlayblast', message = 'FAILED: \tTo rename because file already exists.. how the heck the remove previously failed.. who knows.. but try again now..', printToLog = False, verbose = self.lib.DEBUGGING)
                     os.remove(self.osPathToPublishFile.replace('\\', '/'))
                     os.rename(self.osPathToWorkFile.replace('\\', '/'), self.osPathToPublishFile.replace('\\', '/'))
             
             ## Now submit the version to shotgun
-            self.lib.log(app = self.app, method = '_finishPlayblast', message = 'Submitting vesion info to shotgun...', printToLog = False, verbose = DEBUGGING)
+            self.lib.log(app = self.app, method = '_finishPlayblast', message = 'Submitting vesion info to shotgun...', printToLog = False, verbose = self.lib.DEBUGGING)
             sg_version = self._submit_version(
                                               path_to_movie = publish_path, 
                                               store_on_disk = store_on_disk,
@@ -802,20 +805,20 @@ class MainUI(QtGui.QWidget):
                                               comment = comment,
                                               user = user
                                               )
-            self.lib.log(app = self.app, method = '_finishPlayblast', message = 'Version Submitted to shotgun successfully', printToLog = False, verbose = DEBUGGING)
+            self.lib.log(app = self.app, method = '_finishPlayblast', message = 'Version Submitted to shotgun successfully', printToLog = False, verbose = self.lib.DEBUGGING)
             ## Uploading...
             ## Now upload in a new thread and make our own event loop to wait for the thread to finish.
-            self.lib.log(app = self.app, method = '_finishPlayblast', message = 'Uploading mov to shotgun for review.', printToLog = False, verbose = DEBUGGING)
+            self.lib.log(app = self.app, method = '_finishPlayblast', message = 'Uploading mov to shotgun for review.', printToLog = False, verbose = self.lib.DEBUGGING)
             cmds.headsUpMessage("Uploading playblast to shotgun for review this may take some time! Be patient...", time = 2)
             event_loop = QtCore.QEventLoop()
-            self.lib.log(app = self.app, method = '_finishPlayblast', message = 'event_loop set...', printToLog = False, verbose = DEBUGGING)
+            self.lib.log(app = self.app, method = '_finishPlayblast', message = 'event_loop set...', printToLog = False, verbose = self.lib.DEBUGGING)
             thread = lib.UploaderThread(self.app, sg_version, publish_path, self.upload_to_shotgun)
-            self.lib.log(app = self.app, method = '_finishPlayblast', message = 'thread set...', printToLog = False, verbose = DEBUGGING)
+            self.lib.log(app = self.app, method = '_finishPlayblast', message = 'thread set...', printToLog = False, verbose = self.lib.DEBUGGING)
             thread.finished.connect(event_loop.quit)
             thread.start()
-            self.lib.log(app = self.app, method = '_finishPlayblast', message = 'thread started set...', printToLog = False, verbose = DEBUGGING)
+            self.lib.log(app = self.app, method = '_finishPlayblast', message = 'thread started set...', printToLog = False, verbose = self.lib.DEBUGGING)
             event_loop.exec_()
-            self.lib.log(app = self.app, method = '_finishPlayblast', message = 'event_loop.exec_...', printToLog = False, verbose = DEBUGGING)
+            self.lib.log(app = self.app, method = '_finishPlayblast', message = 'event_loop.exec_...', printToLog = False, verbose = self.lib.DEBUGGING)
             ## log any errors generated in the thread
             for e in thread.get_errors():
                 self.app.log_error(e)
@@ -828,7 +831,7 @@ class MainUI(QtGui.QWidget):
             if self.app.get_setting('isAsset'):
                 if self.deleteHrcGrp.isChecked():
                     cmds.delete('turnTable_hrc')
-            self.lib.log(app = self.app, method = '_finishPlayblast', message = 'Upload to shotgun finished.', printToLog = False, verbose = DEBUGGING)
+            self.lib.log(app = self.app, method = '_finishPlayblast', message = 'Upload to shotgun finished.', printToLog = False, verbose = self.lib.DEBUGGING)
             cmds.headsUpMessage("Playblast upload to shotgun complete!", time = 2)
             cmds.warning('UPLOAD COMPLETE!')
                     
@@ -958,7 +961,7 @@ class MainUI(QtGui.QWidget):
         Method to handle the playblast in maya
         NOTE: May need to add an active viewport update here in case the operator had a different window selected.
         """
-        self.lib.log(self.app, method = '_render_pb_in_maya', message = 'self.qualityPercent.value: %s' % self.qualityPercent.value(), printToLog = False, verbose = DEBUGGING)
+        self.lib.log(self.app, method = '_render_pb_in_maya', message = 'self.qualityPercent.value: %s' % self.qualityPercent.value(), printToLog = False, verbose = self.lib.DEBUGGING)
         ## Clear selection in case the operator had something selected.
         cmds.select(clear = True)
         ## Now set the current editor to be the currently active view
@@ -972,7 +975,7 @@ class MainUI(QtGui.QWidget):
             cmds.warning('No sound files found...')
             sound  = None
             
-        self.lib.log(self.app, method = '_render_pb_in_maya', message = 'sound: %s' % sound , printToLog = False, verbose = DEBUGGING)
+        self.lib.log(self.app, method = '_render_pb_in_maya', message = 'sound: %s' % sound , printToLog = False, verbose = self.lib.DEBUGGING)
         ## Now do the main playblast
         cmds.playblast(
         filename = work_path,
