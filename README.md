@@ -1,14 +1,14 @@
 tk-submit_mayaplayblast
 =====================
-**Description:**
+###Description:
 
 Application to playblast assets or shots.
 
-Deps:
+####Dependencies:
 
 **https://github.com/shotgunsoftware/python-api**
 
-## General application notes:
+####General application notes:
 
 **NOTE on custom application dev paths:**
 
