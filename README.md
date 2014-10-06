@@ -10,18 +10,16 @@ Application to playblast assets or shots.
 
 ####General application notes:
 
-**NOTE on custom application dev paths:**
-
-It is important to note using dev path will cause some cross platform issues because you'll end up with a hard coded path here
+It is important to note using dev path will cause some **cross platform** issues because you'll end up with a hard coded path here
 To avoid this you can copy the application into the studio/install/apps/app_store/ directory and use:
 
 `type: app_store, version: v0.0.1`
 
-HOW EVER!
+**HOW EVER!**
 
 *__This will cause tank updates to fail because the applications don't exist in the official app store__*
 
-So before doing a tank update you'll need to remove or change these paths back to dev.
+So before doing a tank update you'll need to remove or change these paths back to dev!
 
 <hr>
 #APPLICATION INSTALL NOTES:
