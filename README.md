@@ -10,16 +10,12 @@ Application to playblast assets or shots.
 
 ####General application notes:
 
-It is important to note using dev path will cause some **cross platform** issues because you'll end up with a hard coded path here
-To avoid this you can copy the application into the studio/install/apps/app_store/ directory and use:
-
-`type: app_store, version: v0.0.1`
-
-**HOW EVER!**
-
-*__This will cause tank updates to fail because the applications don't exist in the official app store__*
-
-So before doing a tank update you'll need to remove or change these paths back to dev!
+It is important to note using dev path will cause some **cross platform** issues because you'll end up with a hard coded path.<br>
+To avoid this you can copy the application into the studio/install/apps/app_store/ directory and use:<br>
+`location: {name: tk-jbd-submit-mayaplayblast, type: app_store, version: v0.0.1}`<br>
+**HOW EVER!**<br>
+*__This will cause tank updates to fail because the applications don't exist in the official app store__*<br>
+So before doing a tank update you'll need to remove or change these paths back to dev!<br>
 
 <hr>
 #APPLICATION INSTALL NOTES:
