@@ -1,4 +1,30 @@
 import maya.cmds as cmds
+from tank.platform.qt import QtCore, QtGui
+
+def _findShotCamera():
+    """
+    Shot camera setup. You can replace this entire func with your own code to return the correct cameraShape for the app to use.
+    """
+    camera = []
+    for each in cmds.ls(type = 'camera'):
+        getCamTransform = cmds.listRelatives(each, parent = True)[0]
+        ## We don't care about any suffix used, we're looking for an attr called type on the camera here to find the shot cam.
+        ## You can change this to find your shot camera as you need
+        if cmds.objExists('%s.type' % getCamTransform):
+            camera.append(each)
+
+    if not camera:
+        QtGui.QMessageBox.information(None, "Aborted...", 'No shotCam found!!')
+        return -1
+    else:
+        if len(camera) > 1:
+            QtGui.QMessageBox.information(None, "Aborted...", 'Make sure you have only ONE shot camera in the scene!')
+            return -1
+        else:
+            ## Camera is the first in the list.
+            cam = camera[0]
+
+    return cam
 
 def _setCameraDefaults(camera = ''):
     """

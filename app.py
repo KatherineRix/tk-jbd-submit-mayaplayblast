@@ -411,36 +411,17 @@ class MainUI(QtGui.QWidget):
         """
         Shot camera setup
         """
-        camera = []
-        self.lib.log(app = self.app, method = '_setupShotCamera', message = 'Finding camera..', printToLog = False, verbose = self.lib.DEBUGGING)
-        for each in cmds.ls(type = 'camera'):
-            getCamTransform = cmds.listRelatives(each, parent = True)[0]
-            ## We don't care about any suffix used, we're looking for an attr called type on the camera here to find the shot cam.
-            ## You can change this to find your shot camera as you need
-            if cmds.objExists('%s.type' % getCamTransform):
-                camera.append(each)
+        camera = self.lib._findShotCamera()
+        if camera:
+            self.lib.log(app = self.app, method = '_setupShotCamera', message = 'camera: %s' % camera, printToLog = False, verbose = self.lib.DEBUGGING)
+            ## Set the current modelEditors cam to this camera
+            cmds.modelEditor(self.currentEditor, edit = True, camera = camera)
 
-        self.lib.log(app = self.app, method = '_setupShotCamera', message = 'List of cameras found: %s' % camera, printToLog = False, verbose = self.lib.DEBUGGING)
+            ## Now get the parent of the shape to send through to setup the camera Defaults.
+            getCamTransform = cmds.listRelatives(camera, parent = True)[0] ## need to send the camera transform to this function
 
-        if not camera:
-            self.lib.log(app = self.app, method = '_setupShotCamera',  message ="No shotCam found!", printToLog = False, verbose = self.lib.DEBUGGING)
-            QtGui.QMessageBox.information(None, "Aborted...", 'No shotCam found!!')
-            return -1
-        else:
-            if len(camera) > 1:
-                self.lib.log(app = self.app, method = '_setupShotCamera',  message ="More than one camera found. Please make sure you only have one shot camera in your scene!", printToLog = False, verbose = self.lib.DEBUGGING)
-                QtGui.QMessageBox.information(None, "Aborted...", 'Make sure you have only ONE shot camera in the scene!')
-                return -1
-            else:
-                ## Camera is the first in the list.
-                cam = camera[0]
-
-                ## Set the current modelEditors cam to this camera
-                cmds.modelEditor(self.currentEditor, edit = True, camera = cam)
-
-                getCamTransform = cmds.listRelatives(cam, parent = True)[0] ## need to send the camera transform to this function
-                ## Setup the camearDefaults.
-                self.lib._setCameraDefaults(getCamTransform)
+            ## Setup the camearDefaults.
+            self.lib._setCameraDefaults(getCamTransform)
 
     def _setupTurnTable(self, geoGroup = '', start = '', frames = ''):
         """
@@ -457,7 +438,7 @@ class MainUI(QtGui.QWidget):
             cmds.delete('turnTable_hrc')
 
         ## Build the camera for the turnTable
-        cameraName  = 'turnTable%s' % self.app.get_setting('cameraSuffix')
+        cameraName  = 'turnTable_shotCam'
         cmds.camera()
         cmds.rename('camera1', cameraName)
         ## Now change the settings of the camera to the default settings
