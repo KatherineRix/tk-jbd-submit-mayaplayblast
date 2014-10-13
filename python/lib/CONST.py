@@ -84,4 +84,12 @@ PB_SEQUENCETIME         = False
 PB_SHOWORNAMENTS        = True
 PB_VIEWER               = True
 
-SHOTCAM_SUFFIX          = 'shotCam'
+
+HW_MULTI_SAMPLE_ENABLE  = 1
+HW_SSAC_ENABLE          = 1
+HW_SSAC_AMOUNT          = 1.5
+HW_SSAC_RADIUS          = 10
+HW_FILTER_RADIUS        = 10
+HW_SSAO_SAMPLES         = 32
+HW_CONSOLODATEWORLD     = 1
+

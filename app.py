@@ -341,8 +341,8 @@ class MainUI(QtGui.QWidget):
         self.lib.log(app = self.app, method = 'MainUI', message = '_processRadioButtons successful...', printToLog = False, verbose = self.lib.DEBUGGING)
 
         #############################
-        ## Now set the render globals
-        self._setupRenderGlobals(animation = False)
+        ## Now set the default render globals
+        self._setupRenderGlobals()
 
         self.lib.log(app = self.app, method = 'MainUI', message = 'UI Built Successfully...', printToLog = False, verbose = self.lib.DEBUGGING)
 
@@ -411,15 +411,15 @@ class MainUI(QtGui.QWidget):
         """
         Shot camera setup
         """
-        cameraSuffix = self.lib.SHOTCAM_SUFFIX
-
         camera = []
         self.lib.log(app = self.app, method = '_setupShotCamera', message = 'Finding camera..', printToLog = False, verbose = self.lib.DEBUGGING)
         for each in cmds.ls(type = 'camera'):
             getCamTransform = cmds.listRelatives(each, parent = True)[0]
+            ## We don't care about any suffix used, we're looking for an attr called type on the camera here to find the shot cam.
+            ## You can change this to find your shot camera as you need
             if cmds.objExists('%s.type' % getCamTransform):
-                if cmds.getAttr('%s.type' % getCamTransform) == cameraSuffix:
-                    camera.append(each)
+                camera.append(each)
+
         self.lib.log(app = self.app, method = '_setupShotCamera', message = 'List of cameras found: %s' % camera, printToLog = False, verbose = self.lib.DEBUGGING)
 
         if not camera:
@@ -512,37 +512,37 @@ class MainUI(QtGui.QWidget):
                         cmds.modelEditor(self.editor, edit = True, polymeshes = True)
                     else:
                         cmds.modelEditor(self.editor, edit = True, polymeshes = False)
-                if eachSetting.text() == 'Subdiv Surfaces' :
+                if eachSetting.text() == 'Subdiv Surfaces':
                     if eachSetting.isChecked():
                         cmds.modelEditor(self.editor, edit = True, subdivSurfaces = True)
                     else:
                         cmds.modelEditor(self.editor, edit = True, subdivSurfaces = False)
-                if eachSetting.text() == 'Planes' :
+                if eachSetting.text() == 'Planes':
                     if eachSetting.isChecked():
                         cmds.modelEditor(self.editor, edit = True, planes = True)
                     else:
                         cmds.modelEditor(self.editor, edit = True, planes = False)
-                if eachSetting.text() == 'Lights' :
+                if eachSetting.text() == 'Lights':
                     if eachSetting.isChecked():
                         cmds.modelEditor(self.editor, edit = True, lights = True)
                     else:
                         cmds.modelEditor(self.editor, edit = True, lights = False)
-                if eachSetting.text() == 'Cameras' :
+                if eachSetting.text() == 'Cameras':
                     if eachSetting.isChecked():
                         cmds.modelEditor(self.editor, edit = True, cameras = True)
                     else:
                         cmds.modelEditor(self.editor, edit = True, cameras = False)
-                if eachSetting.text() == 'Joints' :
+                if eachSetting.text() == 'Joints':
                     if eachSetting.isChecked():
                         cmds.modelEditor(self.editor, edit = True, joints = True)
                     else:
                         cmds.modelEditor(self.editor, edit = True, joints = False)
-                if eachSetting.text() == 'IK Handles' :
+                if eachSetting.text() == 'IK Handles':
                     if eachSetting.isChecked():
                         cmds.modelEditor(self.editor, edit = True, ikHandles = True)
                     else:
                         cmds.modelEditor(self.editor, edit = True, ikHandles = False)
-                if eachSetting.text() == 'Deformers' :
+                if eachSetting.text() == 'Deformers':
                     if eachSetting.isChecked():
                         cmds.modelEditor(self.editor, edit = True, deformers = True)
                     else:
@@ -642,37 +642,37 @@ class MainUI(QtGui.QWidget):
                         cmds.modelEditor(self.editor, edit = True, hulls = True)
                     else:
                         cmds.modelEditor(self.editor, edit = True, hulls = False)
-                if eachSetting.text() == 'Grid' :
+                if eachSetting.text() == 'Grid':
                     if eachSetting.isChecked():
                         cmds.modelEditor(self.editor, edit = True, grid = True)
                     else:
                         cmds.modelEditor(self.editor, edit = True, grid = False)
-                if eachSetting.text() == 'HUD' :
+                if eachSetting.text() == 'HUD':
                     if eachSetting.isChecked():
                         cmds.modelEditor(self.editor, edit = True, headsUpDisplay = True)
                     else:
                         cmds.modelEditor(self.editor, edit = True, headsUpDisplay = False)
-                if eachSetting.text() == 'Image Planes' :
+                if eachSetting.text() == 'Image Planes':
                     if eachSetting.isChecked():
                         cmds.modelEditor(self.editor, edit = True, imagePlane = True)
                     else:
                         cmds.modelEditor(self.editor, edit = True, imagePlane = False)
-                if eachSetting.text() == 'Selection Highlighting' :
+                if eachSetting.text() == 'Selection Highlighting':
                     if eachSetting.isChecked():
                         cmds.modelEditor(self.editor, edit = True, selectionHiliteDisplay = True)
                     else:
                         cmds.modelEditor(self.editor, edit = True, selectionHiliteDisplay = False)
-                if eachSetting.text() ==  'Texture Placements' :
+                if eachSetting.text() == 'Texture Placements':
                     if eachSetting.isChecked():
                         cmds.modelEditor(self.editor, edit = True, textures = True)
                     else:
                         cmds.modelEditor(self.editor, edit = True, textures = False)
-                if eachSetting.text() ==  'Plugin Shapes' :
+                if eachSetting.text() == 'Plugin Shapes':
                     if eachSetting.isChecked():
                         cmds.modelEditor(self.editor, edit = True, pluginShapes = True)
                     else:
                         cmds.modelEditor(self.editor, edit = True, pluginShapes = False)
-                if eachSetting.text() ==  'GPU Caches' :
+                if eachSetting.text() == 'GPU Caches':
                     try:## Extension only
                         if eachSetting.isChecked():
                             cmds.modelEditor(self.editor, edit = True,  pluginObjects = ['gpuCacheDisplayFilter', True])
@@ -680,12 +680,12 @@ class MainUI(QtGui.QWidget):
                             cmds.modelEditor(self.editor, edit = True, pluginObjects = ['gpuCacheDisplayFilter', False])
                     except:
                         pass
-                if eachSetting.text() ==  'Nurbs CVs' :
+                if eachSetting.text() == 'Nurbs CVs':
                     if eachSetting.isChecked():
                         cmds.modelEditor(self.editor, edit = True, cv = True)
                     else:
                         cmds.modelEditor(self.editor, edit = True, cv = False)
-                if eachSetting.text() ==  'Nurbs CVs' :
+                if eachSetting.text() == 'Nurbs CVs':
                     if eachSetting.isChecked():
                         cmds.modelEditor(self.editor, edit = True, cv = True)
                     else:
@@ -709,43 +709,34 @@ class MainUI(QtGui.QWidget):
                     if eachSetting.isChecked():
                         cmds.modelEditor(self.editor, edit = True, displayTextures = True, displayAppearance='smoothShaded', displayLights = "default")
                         for eachSetting in self.viewportRadioButtons:
-                            if eachSetting.text() ==  'SmoothShade All' :
+                            if eachSetting.text() == 'SmoothShade All':
                                 eachSetting.setChecked(True)
                     else:
                         cmds.modelEditor(self.editor, edit = True, displayTextures = False)
-                if eachSetting.text() ==  'WireFrame' :
+                if eachSetting.text() == 'WireFrame':
                     if eachSetting.isChecked():
                         cmds.modelEditor(self.editor, edit = True, displayAppearance = "wireframe")
-                if eachSetting.text() ==  'SmoothShade All' :
+                if eachSetting.text() == 'SmoothShade All':
                     if eachSetting.isChecked():
                         cmds.modelEditor(self.editor, edit = True, displayAppearance = "smoothShaded")
-                if eachSetting.text() ==  'Bounding Box' :
+                if eachSetting.text() == 'Bounding Box':
                     if eachSetting.isChecked():
                         cmds.modelEditor(self.editor, edit = True, displayAppearance = "boundingBox")
-                if eachSetting.text() ==  'Wireframe on Shaded' :
+                if eachSetting.text() == 'Wireframe on Shaded':
                     if eachSetting.isChecked():
                         cmds.modelEditor(self.editor, edit = True, displayAppearance = "smoothShaded", activeOnly = False, wireframeOnShaded = True)
                         for eachSetting in self.viewportRadioButtons:
-                            if eachSetting.text() ==  'SmoothShade All' :
+                            if eachSetting.text() == 'SmoothShade All':
                                 eachSetting.setChecked(True)
                     else:
                         cmds.modelEditor(self.editor, edit = True, wireframeOnShaded = False)
-                if eachSetting.text() ==  'Default Renderer' :
+                if eachSetting.text() == 'Default Renderer':
                     if eachSetting.isChecked():
                         cmds.modelEditor(self.editor, edit = True, rendererName =  'base_OpenGL_Renderer')
                 if eachSetting.text() == 'Viewport 2.0':
                     if eachSetting.isChecked():
                         cmds.modelEditor(self.editor, edit = True, rendererName = 'ogsRenderer')
-                        cmds.setAttr("hardwareRenderingGlobals.multiSampleEnable", 1)
-                        #cmds.optionMenuGrp('VP20multisampleMenu', e = True,  value = 16)
-                        #cmds.attrFieldSliderGrp('attrFieldSliderGrp21', e = True, en = True)
-                        #cmds.setAttr("hardwareRenderingGlobals.textureMaxResolution", 128)
-                        cmds.setAttr("hardwareRenderingGlobals.ssaoEnable", 1)
-                        cmds.setAttr("hardwareRenderingGlobals.ssaoAmount", 1.5)
-                        cmds.setAttr("hardwareRenderingGlobals.ssaoRadius", 10)
-                        cmds.setAttr("hardwareRenderingGlobals.ssaoFilterRadius", 10)
-                        cmds.setAttr("hardwareRenderingGlobals.ssaoSamples", 32)
-                        cmds.setAttr("hardwareRenderingGlobals.consolidateWorld", 1)
+
         self.lib.log(app = self.app, method = '_processRadioButtons', message = 'Done processing each radio setting', printToLog = False, verbose = self.lib.DEBUGGING)
 
     def doPlayblast(self):
@@ -998,7 +989,7 @@ class MainUI(QtGui.QWidget):
                                animationStartTime=in_frame,
                                animationEndTime=out_frame)
             # set frame ranges for rendering
-            defaultRenderGlobals=pm.PyNode('defaultRenderGlobals')
+            defaultRenderGlobals = pm.PyNode('defaultRenderGlobals')
             defaultRenderGlobals.startFrame.set(in_frame)
             defaultRenderGlobals.endFrame.set(out_frame)
         else:
@@ -1083,17 +1074,27 @@ class MainUI(QtGui.QWidget):
         Used to setup your renderGlobals.
         We set the start and end times and the default widths and then call the external for studio customisation.
         """
-        ## Set globals to start and end frames.
-        playStart  = cmds.playbackOptions( query = True, minTime= True)
-        playFinish = cmds.playbackOptions( query = True, maxTime= True)
-        cmds.setAttr('defaultRenderGlobals.startFrame', playStart)
-        cmds.setAttr('defaultRenderGlobals.endFrame', playFinish)
-
         # Set globals default resolution
         cmds.setAttr('defaultResolution.width', self.renderWidth)
         cmds.setAttr('defaultResolution.height', self.renderHeight)
         cmds.setAttr('defaultResolution.pixelAspect', 1)
         cmds.setAttr('defaultResolution.deviceAspectRatio', 1.7778)
 
+        ## Setup any custom globals from the users lib file.
         self.lib.setRenderGlobals()
+
+        ## Setup the viewport 2.0 HW globals
+        self._setupVP2()
         print 'Default render settings initialized.'
+
+    def _setupVP2(self):
+        #cmds.optionMenuGrp('VP20multisampleMenu', e = True,  value = 16)
+        #cmds.attrFieldSliderGrp('attrFieldSliderGrp21', e = True, en = True)
+        #cmds.setAttr("hardwareRenderingGlobals.textureMaxResolution", 128)
+        cmds.setAttr("hardwareRenderingGlobals.multiSampleEnable", self.lib.HW_MULTI_SAMPLE_ENABLE)
+        cmds.setAttr("hardwareRenderingGlobals.ssaoEnable", self.lib.HW_SSAC_ENABLE)
+        cmds.setAttr("hardwareRenderingGlobals.ssaoAmount", self.lib.HW_SSAC_AMOUNT)
+        cmds.setAttr("hardwareRenderingGlobals.ssaoRadius", self.lib.HW_SSAC_RADIUS)
+        cmds.setAttr("hardwareRenderingGlobals.ssaoFilterRadius", self.lib.HW_FILTER_RADIUS)
+        cmds.setAttr("hardwareRenderingGlobals.ssaoSamples", self.lib.HW_SSAO_SAMPLES)
+        cmds.setAttr("hardwareRenderingGlobals.consolidateWorld", self.lib.HW_CONSOLODATEWORLD)
