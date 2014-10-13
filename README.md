@@ -22,13 +22,6 @@ https://toolkit.shotgunsoftware.com/entries/23797786#Apps%20in%20git%20%28and%20
 I have found this to be the most reliable for cross platform install locations
 
 * **You must have the python-api installed for shotgun!**
-* You must uncomment and change the lines in the python/lib/CONST.py file to be the correct information for your shotgun setup!
-
-        SHOTGUN_CONFIG_NAME     = YOURCONFIGNAME
-        SHOTGUN_URL             = INSERT YOUR URL HERE eg https://mystudio.shotgunstudio.com AS A STRING
-        SHOTGUN_TOOLKIT_NAME    = INSERT YOUR SCRIPTNAME eg Toolkit
-        SHOTGUN_TOOLKIT_API_KEY = INSERT YOUR API KEY HERE eg 724eea86a7hhhe4816b8f24833112eacf42834a2b5cb85f814f125e96078a3b3
-
 * Adding to the asset_step and shot_step:
 ```
       tk-submit-maya-shotPlayblast:
@@ -51,7 +44,7 @@ I have found this to be the most reliable for cross platform install locations
 ```
 It is important to note here if you wish to expose the options for the playblast like in the images below use the value true in the showOptions. If you wish to just
 set some defaults and not have the artists change these use the CONST file to set the default on options and set the showOptions to false.
-1
+
 <br>
 <center>
 <img src = "http://www.anim83d.com/images/github/mpb_01.PNG"><br>

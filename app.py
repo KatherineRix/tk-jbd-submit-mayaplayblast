@@ -72,6 +72,9 @@ class MainUI(QtGui.QWidget):
             self.resize(self.sizeHint())
 
     def _buildUI(self):
+        """
+        MainUI builder
+        """
         self.lib.log(app = self.app, method = '_buildUI', message = 'ValidContextFound.. building UI', printToLog = False, verbose = self.lib.DEBUGGING)
         ############################################################################################
         ## Setup the main UI
@@ -310,16 +313,20 @@ class MainUI(QtGui.QWidget):
         self.mainLayout.addWidget(self.cameraSettingsGroupBox)
         self.mainLayout.addWidget(self.viewportSettingsGroupBox)
         self.mainLayout.addWidget(self.rendererSettingsGroupBox)
+        self.lib.log(app = self.app, method = '_buildUI', message = 'Building final Layout step 2', printToLog = False, verbose = self.lib.DEBUGGING)
         if self.app.get_setting('isAsset'):
             if self.app.get_setting('allowAssetTurnTableBuild'):
                 self.mainLayout.addWidget(self.turnTableGroupBox)
             else:
                 pass
         else:
+            self.lib.log(app = self.app, method = '_buildUI', message = 'Building final Layout step 2.5', printToLog = False, verbose = self.lib.DEBUGGING)
             self._setupShotCamera()
+        self.lib.log(app = self.app, method = '_buildUI', message = 'Building final Layout step 3', printToLog = False, verbose = self.lib.DEBUGGING)
         self.mainLayout.addWidget(self.submissionGroupBox)
         self.mainLayout.addWidget(self.commentGroupBox)
         self.mainLayout.addStretch(1)
+        self.lib.log(app = self.app, method = '_buildUI', message = 'Building final Layout complete..', printToLog = False, verbose = self.lib.DEBUGGING)
 
         ###############################################################################
         ## Now show or hide the options if the showOptions is turned on else hide these
@@ -335,66 +342,14 @@ class MainUI(QtGui.QWidget):
 
         #############################
         ## Now set the render globals
-        if self.app.get_setting('isAsset'):
-            self._setRenderGlobals(animation = False)
-        else:
-            self._setRenderGlobals(animation = True)
+        self._setupRenderGlobals(animation = False)
 
         self.lib.log(app = self.app, method = 'MainUI', message = 'UI Built Successfully...', printToLog = False, verbose = self.lib.DEBUGGING)
 
-    def _uploadToggle(self):
-        if self.upload.isChecked():
-             self.commentGroupBox.show()
-             self.upload.setStyleSheet('QRadioButton:indicator{background-color: #088A08}')
-        else:
-            self.commentGroupBox.hide()
-            self.upload.setStyleSheet('QRadioButton:indicator{background-color: #B40404}')
-
-    def _getEditor(self):
-        currentPanel = cmds.getPanel(withFocus = True)
-        if 'modelPanel' not in currentPanel:
-            QtGui.QMessageBox.information(None, "Aborted...", 'You must have active a current 3D viewport! \nRight click the viewport you wish to playblast from.')
-            return -1
-        else:
-            currentEditor = cmds.modelPanel(currentPanel, q = True, modelEditor = True)
-            self.lib.log(app = self.app, method = '_getEditor', message = 'Current Editor is: %s' % currentEditor, printToLog = False, verbose = self.lib.DEBUGGING)
-            self.currentEditor = currentEditor
-            return currentEditor
-
-    def _setupShotCamera(self):
-        """
-        Shot camera setup
-        """
-        try:
-            cameraSuffix = configCONST.SHOTCAM_SUFFIX
-        except:
-            camerSuffix = self.lib.SHOTCAM_SUFFIX
-        camera = []
-        self.lib.log(app = self.app, method = '_setupShotCamera', message = 'Finding camera..', printToLog = False, verbose = self.lib.DEBUGGING)
-        for each in cmds.ls(type = 'camera'):
-            getCamTransform = cmds.listRelatives(each, parent = True)[0]
-            self.lib.log(app = self.app, method = '_setupShotCamera', message = 'getCamTransform.. %s' % getCamTransform, printToLog = False, verbose = self.lib.DEBUGGING)
-            if cmds.objExists('%s.type' % getCamTransform):
-                camera.append(each)
-
-        self.lib.log(app = self.app, method = '_setupShotCamera', message = 'List of cameras found: %s' % camera, printToLog = False, verbose = self.lib.DEBUGGING)
-        
-        if not camera:
-            self.lib.log(app = self.app, method = '_setupShotCamera',  message ="No shotCam found!", printToLog = False, verbose = self.lib.DEBUGGING)
-            QtGui.QMessageBox.information(None, "Aborted...", 'No shotCam found!!')
-            return -1
-        else:
-            if len(camera) > 1:
-                self.lib.log(app = self.app, method = '_setupShotCamera',  message ="More than one camera found. Please make sure you only have one shot camera in your scene!", printToLog = False, verbose = self.lib.DEBUGGING)
-                QtGui.QMessageBox.information(None, "Aborted...", 'Make sure you have only ONE shot camera in the scene!')
-                return -1
-            else:
-                cam = camera[0]
-                cmds.modelEditor(self.currentEditor, edit = True, camera = cam)
-                getCamTransform = cmds.listRelatives(cam, parent = True)[0] ## need to send the camera transform to this function
-                self.lib._setCameraDefaults(getCamTransform)
-
     def _buildAssetTurntableUI(self):
+        """
+        Builds the turnTable UI if needed
+        """
         self.turnTableGroupBox      = QtGui.QGroupBox(self)
         self.turnTableGroupBox.setFlat(True)
         self.turnTableGroupBox.setTitle('Turn Table Setup')
@@ -430,14 +385,62 @@ class MainUI(QtGui.QWidget):
         self.turnTableGridLayout.addWidget(self.buildTurnTableButton, 2,0)
         self.frameRangeLayout.stretch(1)
 
-    def _setRenderGlobals(self, animation):
-        self.lib.log(app = self.app, method = '_setRenderGlobals', message = 'Setting render globals now..', printToLog = False, verbose = self.lib.DEBUGGING)
-        ## Now try to setup the renderglobals if using the default config
-        try:
-            self._setupRenderGlobals(width = self.renderWidth, height = self.renderHeight, animation = animation)
-        except:
-            pass
-        self.lib.log(app = self.app, method = '_setRenderGlobals', message = 'DONE setting render globals..', printToLog = False, verbose = self.lib.DEBUGGING)
+    def _uploadToggle(self):
+        """
+        Shows and hides the comment groupBox if the upload radio button is true or false.
+        """
+        if self.upload.isChecked():
+             self.commentGroupBox.show()
+             self.upload.setStyleSheet('QRadioButton:indicator{background-color: #088A08}')
+        else:
+            self.commentGroupBox.hide()
+            self.upload.setStyleSheet('QRadioButton:indicator{background-color: #B40404}')
+
+    def _getEditor(self):
+        currentPanel = cmds.getPanel(withFocus = True)
+        if 'modelPanel' not in currentPanel:
+            QtGui.QMessageBox.information(None, "Aborted...", 'You must have active a current 3D viewport! \nRight click the viewport you wish to playblast from.')
+            return -1
+        else:
+            currentEditor = cmds.modelPanel(currentPanel, q = True, modelEditor = True)
+            self.lib.log(app = self.app, method = '_getEditor', message = 'Current Editor is: %s' % currentEditor, printToLog = False, verbose = self.lib.DEBUGGING)
+            self.currentEditor = currentEditor
+            return currentEditor
+
+    def _setupShotCamera(self):
+        """
+        Shot camera setup
+        """
+        cameraSuffix = self.lib.SHOTCAM_SUFFIX
+
+        camera = []
+        self.lib.log(app = self.app, method = '_setupShotCamera', message = 'Finding camera..', printToLog = False, verbose = self.lib.DEBUGGING)
+        for each in cmds.ls(type = 'camera'):
+            getCamTransform = cmds.listRelatives(each, parent = True)[0]
+            if cmds.objExists('%s.type' % getCamTransform):
+                if cmds.getAttr('%s.type' % getCamTransform) == cameraSuffix:
+                    camera.append(each)
+        self.lib.log(app = self.app, method = '_setupShotCamera', message = 'List of cameras found: %s' % camera, printToLog = False, verbose = self.lib.DEBUGGING)
+
+        if not camera:
+            self.lib.log(app = self.app, method = '_setupShotCamera',  message ="No shotCam found!", printToLog = False, verbose = self.lib.DEBUGGING)
+            QtGui.QMessageBox.information(None, "Aborted...", 'No shotCam found!!')
+            return -1
+        else:
+            if len(camera) > 1:
+                self.lib.log(app = self.app, method = '_setupShotCamera',  message ="More than one camera found. Please make sure you only have one shot camera in your scene!", printToLog = False, verbose = self.lib.DEBUGGING)
+                QtGui.QMessageBox.information(None, "Aborted...", 'Make sure you have only ONE shot camera in the scene!')
+                return -1
+            else:
+                ## Camera is the first in the list.
+                cam = camera[0]
+
+                ## Set the current modelEditors cam to this camera
+                cmds.modelEditor(self.currentEditor, edit = True, camera = cam)
+
+                getCamTransform = cmds.listRelatives(cam, parent = True)[0] ## need to send the camera transform to this function
+                ## Setup the camearDefaults.
+                self.lib._setCameraDefaults(getCamTransform)
 
     def _setupTurnTable(self, geoGroup = '', start = '', frames = ''):
         """
@@ -447,19 +450,19 @@ class MainUI(QtGui.QWidget):
         geoGroup    = geoGroup.getText()
         start       = start.value()
         frames      = frames.value()
-        
+
         ## Now check for existing and delete it.
         if cmds.objExists('turnTable_hrc'):
             self.lib.log(app = self.app, message = 'Removed existing turnTable...', printToLog = False, verbose = self.lib.DEBUGGING)
             cmds.delete('turnTable_hrc')
-        
+
         ## Build the camera for the turnTable
         cameraName  = 'turnTable%s' % self.app.get_setting('cameraSuffix')
         cmds.camera()
         cmds.rename('camera1', cameraName)
         ## Now change the settings of the camera to the default settings
         self.lib._setCameraDefaults(cameraName)
-        
+
         ## Setup the group
         cmds.group(cameraName, n = 'turnTable_hrc')
         cmds.pointConstraint(geoGroup, 'turnTable_hrc', mo = False, n = 'tmpPoint')
@@ -470,7 +473,7 @@ class MainUI(QtGui.QWidget):
         cmds.modelEditor(self.currentEditor, e = True, camera = cameraName)
         cmds.viewFit(cameraName, allObjects = False, animate = False,  f=0.80)
         #cmds.xform(cameraName, translation = [0,0,25])
-        
+
         ## Now keyframe the turntable group
         cmds.currentTime(start)
         getStartRotY = cmds.getAttr('turnTable_hrc.rotateY')
@@ -480,13 +483,13 @@ class MainUI(QtGui.QWidget):
         cmds.setAttr('turnTable_hrc.rotateY', 360 + getStartRotY)
         cmds.setKeyframe('turnTable_hrc', at = 'rotateY')
         cmds.setKeyframe('turnTable_hrc', at = 'rotateX')
-        
+
         cmds.currentTime(start + frames)
         cmds.setAttr('turnTable_hrc.rotateX', -360)
         cmds.setKeyframe('turnTable_hrc', at = 'rotateX')
-        
+
         cmds.select(clear = True)
-   
+
     def _processRadioButtons(self):
         self.editor = self.currentEditor
         radioButtons = [self.camRadioButtons, self.viewportRadioButtons, self.rendererRadioButtons]
@@ -613,7 +616,7 @@ class MainUI(QtGui.QWidget):
                     if eachSetting.isChecked():
                         cmds.modelEditor(self.editor, edit = True, strokes = True)
                     else:
-                        cmds.modelEditor(self.editor, edit = True, strokes = False)  
+                        cmds.modelEditor(self.editor, edit = True, strokes = False)
                 if eachSetting.text() == 'Motion Trails':
                     if eachSetting.isChecked():
                         cmds.modelEditor(self.editor, edit = True, motionTrails = True)
@@ -633,12 +636,12 @@ class MainUI(QtGui.QWidget):
                     if eachSetting.isChecked():
                         cmds.modelEditor(self.editor, edit = True, controlVertices = True)
                     else:
-                        cmds.modelEditor(self.editor, edit = True, controlVertices = False)                
+                        cmds.modelEditor(self.editor, edit = True, controlVertices = False)
                 if eachSetting.text() == 'NURBS Hulls':
                     if eachSetting.isChecked():
                         cmds.modelEditor(self.editor, edit = True, hulls = True)
                     else:
-                        cmds.modelEditor(self.editor, edit = True, hulls = False)                 
+                        cmds.modelEditor(self.editor, edit = True, hulls = False)
                 if eachSetting.text() == 'Grid' :
                     if eachSetting.isChecked():
                         cmds.modelEditor(self.editor, edit = True, grid = True)
@@ -744,36 +747,36 @@ class MainUI(QtGui.QWidget):
                         cmds.setAttr("hardwareRenderingGlobals.ssaoSamples", 32)
                         cmds.setAttr("hardwareRenderingGlobals.consolidateWorld", 1)
         self.lib.log(app = self.app, method = '_processRadioButtons', message = 'Done processing each radio setting', printToLog = False, verbose = self.lib.DEBUGGING)
-        
+
     def doPlayblast(self):
         """
         Double check the comment. Then grab some settings and do the main thread.
         """
-        comment = self.comment.text() 
+        comment = self.comment.text()
         if self.upload.isChecked():
             if comment == '':
                 self.lib.log(app = self.app, message = 'You must set a valid comment for review!', printToLog = False, verbose = self.lib.DEBUGGING)
                 QtGui.QMessageBox.information(None, "Aborted...", 'Please put a valid comment.')
                 return -1
-            
+
         work_template   = self.app.get_template('template_work')
         width           = self.app.get_setting("movie_width")
         height          = self.app.get_setting("movie_height")
         isAsset         = self.app.get_setting("isAsset")
         user            = tank.util.get_current_user(self.app.tank)
-        
+
         self._setupPlayblast(work_template, width, height, comment, isAsset, user)
-            
+
     def _setupPlayblast(self, work_template, width, height, comment, isAsset, user):
         """
         This is the main method to processs the playblast
-        """       
+        """
         # Is the app configured to do anything?
         store_on_disk = self.app.get_setting("store_on_disk")
         if not self.upload_to_shotgun and not store_on_disk:
             self.lib.log(app = self.app, message ="App is not configured to store playblast on disk nor upload to shotgun! Check the shot_step.yml to fix this.", printToLog = False, verbose = self.lib.DEBUGGING)
             return None
-        
+
         ## Double check the artist wants to playblast.
         self.reply = QtGui.QMessageBox.question(None, 'Continue with playblast?', "Do you wish to playblast now? \nNow is a good time to save a new vers scene if you haven't already...", QtGui.QMessageBox.Ok, QtGui.QMessageBox.Cancel)
         if self.reply == QtGui.QMessageBox.Ok:
@@ -793,11 +796,11 @@ class MainUI(QtGui.QWidget):
             work_path_template = self.app.get_template("movie_workpath_template")
             work_path = work_path_template.apply_fields(fields)
             self.lib.log(app = self.app, message = 'work_path: %s' % work_path, printToLog = False, verbose = self.lib.DEBUGGING)
-            
+
             if sys.platform == 'win32':
                 self.osPathToWorkFile = r'%s' % work_path
                 self.osPathToPublishFile = r'%s' % publish_path
-                
+
             ## Now query the first and last frames of the animation
             getFirstFrame = cmds.playbackOptions(query = True, animationStartTime = True)
             getLastFrame = cmds.playbackOptions(query = True, animationEndTime = True)
@@ -817,7 +820,7 @@ class MainUI(QtGui.QWidget):
             self.lib.log(app = self.app, method = '_setupPlayblast', message = 'work_path: \t%s' % work_path, printToLog = False, verbose = self.lib.DEBUGGING)
             self.lib.log(app = self.app, method = '_setupPlayblast', message = 'osPathToWorkFile: \t%s' % self.osPathToWorkFile.replace('\\', '/'), printToLog = False, verbose = self.lib.DEBUGGING)
             self.lib.log(app = self.app, method = '_setupPlayblast', message = 'osPathToPublishFile: \t%s' % self.osPathToPublishFile.replace('\\', '/'), printToLog = False, verbose = self.lib.DEBUGGING)
-            
+
             ## Now check for existing playblast. We check the publish folder because the working file gets moved into publish on upload.
             ## The playblast tool overwrites any playblasts it does with the same version name in the working directory.
             if os.path.exists(publish_path):
@@ -825,7 +828,7 @@ class MainUI(QtGui.QWidget):
                 self.reply = QtGui.QMessageBox.question(None, 'IMPORTANT!!!!!', "Existing published playblast found!!!!\nIf for some reason the previous blast didn't upload click okay to redo the playblast now.\nOtherwise CANCEL NOW and save a new version of your scene or you will end up with duplicates in shotgun!", QtGui.QMessageBox.Ok, QtGui.QMessageBox.Cancel)
                 if self.reply == QtGui.QMessageBox.Ok:
                     ################################################
-                    ## CHECK PERMS AT KL FOR THIS IT MIGHT NOT WORK !!
+                    ## CHECK PERMS FOR THIS IT MIGHT NOT WORK !!
                     ################################################
                     try:
                         os.remove(self.osPathToPublishFile.replace('\\', '/'))
@@ -837,19 +840,19 @@ class MainUI(QtGui.QWidget):
                     return -1
             else:
                 self._finishPlayblast(publish_path, width, height, store_on_disk, getFirstFrame, getLastFrame, comment, user, work_path)
-                
+
     def _finishPlayblast(self, publish_path, width, height, store_on_disk, getFirstFrame, getLastFrame, comment, user, work_path):
         ## Now do the playblast if the user selected okay or there wasn't a duplicate found.
         self.lib.log(app = self.app, method = '_finishPlayblast', message = 'Duplicate check passed. Playblasting...', printToLog = False, verbose = self.lib.DEBUGGING)
-        
+
         ## Now render the playblast
         self._render_pb_in_maya(getFirstFrame, getLastFrame, publish_path, work_path, width, height)
         self.lib.log(app = self.app, method = '_finishPlayblast', message = 'PlayBlast finished..', printToLog = False, verbose = self.lib.DEBUGGING)
-        
+
         ## Check if uploading is enabled in the UI and do the uploading if it is, else we will finish up here.
         if self.upload.isChecked():
             self.lib.log(app = self.app, method = '_finishPlayblast', message = 'Upload is turned on.. processing version to sg now..', printToLog = False, verbose = self.lib.DEBUGGING)
-            
+
             ## Move the working file to the publish path
             try:
                 self.lib.log(app = self.app, method = '_finishPlayblast', message = 'RENAMING: osPathToWorkFile to osPathToPublishFile', printToLog = False, verbose = self.lib.DEBUGGING)
@@ -865,13 +868,13 @@ class MainUI(QtGui.QWidget):
                     self.lib.log(app = self.app, method = '_setupPlayblast', message = 'FAILED: \tTo rename because file already exists.. how the heck the remove previously failed.. who knows.. but try again now..', printToLog = False, verbose = self.lib.DEBUGGING)
                     os.remove(self.osPathToPublishFile.replace('\\', '/'))
                     os.rename(self.osPathToWorkFile.replace('\\', '/'), self.osPathToPublishFile.replace('\\', '/'))
-            
+
             ## Now submit the version to shotgun
             self.lib.log(app = self.app, method = '_finishPlayblast', message = 'Submitting vesion info to shotgun...', printToLog = False, verbose = self.lib.DEBUGGING)
             sg_version = self._submit_version(
-                                              path_to_movie = publish_path, 
+                                              path_to_movie = publish_path,
                                               store_on_disk = store_on_disk,
-                                              first_frame = getFirstFrame, 
+                                              first_frame = getFirstFrame,
                                               last_frame = getLastFrame,
                                               comment = comment,
                                               user = user
@@ -897,7 +900,7 @@ class MainUI(QtGui.QWidget):
             ## Remove from file system if required
             if not store_on_disk and os.path.exists(publish_path):
                 os.unlink(publish_path)
-                
+
             ## Remove turntable if option is selected
             if self.app.get_setting('isAsset'):
                 if self.deleteHrcGrp.isChecked():
@@ -905,7 +908,7 @@ class MainUI(QtGui.QWidget):
             self.lib.log(app = self.app, method = '_finishPlayblast', message = 'Upload to shotgun finished.', printToLog = False, verbose = self.lib.DEBUGGING)
             cmds.headsUpMessage("Playblast upload to shotgun complete!", time = 2)
             cmds.warning('UPLOAD COMPLETE!')
-                    
+
     def _setFrameRanges(self, isAsset):
         """
         STOLEN FROM tk-multi-setframerange v0.1.7
@@ -922,7 +925,7 @@ class MainUI(QtGui.QWidget):
             if new_in is None or new_out is None:
                 # lazy import so that this script still loads in batch mode
                 message =  "Shotgun has not yet been populated with \n"
-                message += "in and out frame data for this Shot."    
+                message += "in and out frame data for this Shot."
                 # present a pyside dialog
                 QtGui.QMessageBox.information(None, "ERROR", message)
             elif int(new_in) != int(current_in) or int(new_out) != int(current_out):
@@ -938,7 +941,7 @@ class MainUI(QtGui.QWidget):
                 return
             else:
                 pass
-       
+
     def get_frame_range_from_shotgun(self):
         """
         STOLEN FROM tk-multi-setframerange v0.1.7
@@ -990,7 +993,7 @@ class MainUI(QtGui.QWidget):
         if engine == "tk-maya":
             import pymel.core as pm
             # set frame ranges for plackback
-            pm.playbackOptions(minTime=in_frame, 
+            pm.playbackOptions(minTime=in_frame,
                                maxTime=out_frame,
                                animationStartTime=in_frame,
                                animationEndTime=out_frame)
@@ -1023,7 +1026,7 @@ class MainUI(QtGui.QWidget):
             "description": comment
         }
         if store_on_disk:
-            data["sg_path_to_movie"] = path_to_movie        
+            data["sg_path_to_movie"] = path_to_movie
         sg_version = self.app.tank.shotgun.create("Version", data)
         return sg_version
 
@@ -1074,151 +1077,23 @@ class MainUI(QtGui.QWidget):
         widthHeight     = [width, height],
         sound           = sound
         )
-        
-    def _setupRenderGlobals(self, width = 1280, height = 720, animation = False):
-        cmds.currentUnit(time='pal')
-        self.lib.log(app = self.app, method = 'utils._setRenderGlobals', message= 'Set currentTime to pal', printToLog = False, verbose = self.lib.DEBUGGING)
-        cmds.currentUnit(linear='cm')
-        self.lib.log(app = self.app, method = 'utils._setRenderGlobals', message= 'Set units to cm', printToLog = False, verbose = self.lib.DEBUGGING)
-    
-        mel.eval('setAttr defaultResolution.width %s' % width)
-        self.lib.log(app = self.app, method = 'utils._setRenderGlobals', message= 'Set defaultResolution width: %s' % width, printToLog = False, verbose = self.lib.DEBUGGING)
-        mel.eval('setAttr defaultResolution.height %s' % height)
-        self.lib.log(app = self.app, method = 'utils._setRenderGlobals', message= 'Set defaultResolution height: %s' % height, printToLog = False, verbose = self.lib.DEBUGGING)
-        mel.eval('setAttr defaultResolution.deviceAspectRatio 1.777')
-        self.lib.log(app = self.app, method = 'utils._setRenderGlobals', message= 'Set defaultResolution deviceAspectRatio: 1.777', printToLog = False, verbose = self.lib.DEBUGGING)
-        mel.eval('setAttr defaultResolution.pixelAspect 1')
-        self.lib.log(app = self.app, method = 'utils._setRenderGlobals', message= 'Set defaultResolution pixelAspect: 1', printToLog = False, verbose = self.lib.DEBUGGING)
-    
-        ## load mentalray
-        if not cmds.pluginInfo( 'Mayatomr', query=True, loaded = True ):
-            cmds.loadPlugin('Mayatomr')
-            self.lib.log(app = self.app, method = 'utils._setRenderGlobals', message= 'Loaded Mayatomr plugin..', printToLog = False, verbose = self.lib.DEBUGGING)
-    
-        cmds.setAttr('defaultRenderGlobals.currentRenderer','mentalRay', type = 'string')
-        self.lib.log(app = self.app, method = 'utils._setRenderGlobals', message= 'Set currentRenderer to mentalRay', printToLog = False, verbose = self.lib.DEBUGGING)
-        mel.eval('unifiedRenderGlobalsWindow;')
-        self.lib.log(app = self.app, method = 'utils._setRenderGlobals', message= 'unifiedRenderGlobalsWindow', printToLog = False, verbose = self.lib.DEBUGGING)
-    
-        # Default Render Globals
-        # /////////////////////
-        cmds.setAttr('defaultRenderGlobals.imageFormat', 51)
-        self.lib.log(app = self.app, method = 'utils._setRenderGlobals', message= 'defaultRenderGlobals.imageFormat: 51', printToLog = False, verbose = self.lib.DEBUGGING)
-    
-        cmds.setAttr('defaultRenderGlobals.imfkey','exr', type = 'string')
-        self.lib.log(app = self.app, method = 'utils._setRenderGlobals', message= 'defaultRenderGlobals.imfkey: exr', printToLog = False, verbose = self.lib.DEBUGGING)
-    
-        cmds.setAttr('defaultRenderGlobals.animation', 1)
-        self.lib.log(app = self.app, method = 'utils._setRenderGlobals', message= 'defaultRenderGlobals.animation: 1', printToLog = False, verbose = self.lib.DEBUGGING)
-    
-        cmds.setAttr('defaultRenderGlobals.extensionPadding', 3)
-        self.lib.log(app = self.app, method = 'utils._setRenderGlobals', message= 'defaultRenderGlobals.extensionPadding: 3', printToLog = False, verbose = self.lib.DEBUGGING)
-    
-        cmds.getAttr('defaultRenderGlobals.extensionPadding')
-    
-        cmds.setAttr('defaultRenderGlobals.periodInExt', 1)
-        self.lib.log(app = self.app, method = 'utils._setRenderGlobals', message= 'defaultRenderGlobals.periodInExt: 1', printToLog = False, verbose = self.lib.DEBUGGING)
-    
-        cmds.setAttr('defaultRenderGlobals.outFormatControl', 0)
-        self.lib.log(app = self.app, method = 'utils._setRenderGlobals', message= 'defaultRenderGlobals.outFormatControl: 0', printToLog = False, verbose = self.lib.DEBUGGING)
-    
-        cmds.setAttr('defaultRenderGlobals.putFrameBeforeExt', 1)
-        self.lib.log(app = self.app, method = 'utils._setRenderGlobals', message= 'defaultRenderGlobals.putFrameBeforeExt: 1', printToLog = False, verbose = self.lib.DEBUGGING)
-    
-        cmds.setAttr('defaultRenderGlobals.enableDefaultLight', 0)
-        self.lib.log(app = self.app, method = 'utils._setRenderGlobals', message= 'defaultRenderGlobals.enableDefaultLight: 0', printToLog = False, verbose = self.lib.DEBUGGING)
-    
-        cmds.setAttr('defaultResolution.aspectLock', 0)
-        self.lib.log(app = self.app, method = 'utils._setRenderGlobals', message= 'defaultRenderGlobals.aspectLock: 0', printToLog = False, verbose = self.lib.DEBUGGING)
-    
-        # MentalRay Globals
-        # /////////////////////
-        cmds.setAttr('mentalrayGlobals.imageCompression', 4)
-        cmds.setAttr('mentalrayGlobals.exportPostEffects', 0)
-        cmds.setAttr('mentalrayGlobals.accelerationMethod', 4)
-        cmds.setAttr('mentalrayGlobals.exportVerbosity', 5)
-        # miDefault Frame Buffer
-        cmds.setAttr('miDefaultFramebuffer.datatype', 16)
-        # miDefault sampling defaults
-        cmds.setAttr('miDefaultOptions.filterWidth', 0.6666666667)
-        cmds.setAttr('miDefaultOptions.filterHeight', 0.6666666667)
-        cmds.setAttr('miDefaultOptions.filter', 2)
-        cmds.setAttr('miDefaultOptions.sampleLock', 0)
-        # enable raytracing, disable scanline
-        cmds.setAttr('miDefaultOptions.scanline', 0)
-        try:
-            cmds.optionMenuGrp('miSampleModeCtrl', edit = True,  select = 2)
-        except:
-            pass
-        cmds.setAttr('miDefaultOptions.minSamples', -2)
-        cmds.setAttr('miDefaultOptions.maxSamples', 0)
-    
-        # set sampling quality for RGB channel to eliminate noise
-        # costs a bit extra time because it will sample more in the
-        # red / green channel but will be faster for blue.
-        # using unified sampling
-        cmds.setAttr('miDefaultOptions.contrastR', 0.04)
-        cmds.setAttr('miDefaultOptions.contrastG', 0.03)
-        cmds.setAttr('miDefaultOptions.contrastB', 0.06)
-        cmds.setAttr('miDefaultOptions.contrastA', 0.03)
-    
-        cmds.setAttr('miDefaultOptions.maxReflectionRays', 3)
-        cmds.setAttr('miDefaultOptions.maxRefractionRays', 3)
-        cmds.setAttr('miDefaultOptions.maxRayDepth', 5)
-        cmds.setAttr('miDefaultOptions.maxShadowRayDepth', 5)
-    
-        cmds.setAttr('miDefaultOptions.finalGatherRays', 20)
-        cmds.setAttr('miDefaultOptions.finalGatherPresampleDensity', 0.2)
-        cmds.setAttr('miDefaultOptions.finalGatherTraceDiffuse', 0)
-        cmds.setAttr('miDefaultOptions.finalGatherPoints', 50)
-    
-        cmds.setAttr('miDefaultOptions.displacePresample', 0)
-    
+
+    def _setupRenderGlobals(self):
+        """
+        Used to setup your renderGlobals.
+        We set the start and end times and the default widths and then call the external for studio customisation.
+        """
+        ## Set globals to start and end frames.
         playStart  = cmds.playbackOptions( query = True, minTime= True)
         playFinish = cmds.playbackOptions( query = True, maxTime= True)
         cmds.setAttr('defaultRenderGlobals.startFrame', playStart)
         cmds.setAttr('defaultRenderGlobals.endFrame', playFinish)
-    
-        # MentalCore
-        # /////////////////////
-        if not animation:
-            try:
-                mapi.enable(True)
-                cmds.setAttr('mentalcoreGlobals.en_colour_management',1)
-                mel.eval('unifiedRenderGlobalsWindow;')
-    
-                cmds.setAttr('mentalcoreGlobals.contrast_all_buffers', 1)
-    
-                cmds.setAttr('mentalcoreGlobals.output_mode', 0)
-                cmds.setAttr('mentalcoreGlobals.unified_sampling', 1)
-                cmds.setAttr('mentalcoreGlobals.samples_min', 1)
-                cmds.setAttr('mentalcoreGlobals.samples_max', 80)
-                cmds.setAttr('mentalcoreGlobals.samples_quality', 0.8)
-                cmds.setAttr('mentalcoreGlobals.samples_error_cutoff', 0.02)
-    
-                cmds.setAttr('mentalcoreGlobals.en_envl', 1)
-                cmds.setAttr('mentalcoreGlobals.envl_scale', 0.5)
-                cmds.setAttr('mentalcoreGlobals.envl_blur_res', 0)
-                cmds.setAttr('mentalcoreGlobals.envl_blur', 0)
-                cmds.setAttr('mentalcoreGlobals.envl_en_flood_colour', 1)
-                cmds.setAttr('mentalcoreGlobals.envl_flood_colour', 1, 1, 1, 1, type = 'double3')
-                cmds.setAttr('mentalcoreGlobals.en_ao', 1)
-                cmds.setAttr('mentalcoreGlobals.ao_samples', 24)
-                cmds.setAttr('mentalcoreGlobals.ao_spread', 60)
-                cmds.setAttr('mentalcoreGlobals.ao_near_clip', 1)
-                cmds.setAttr('mentalcoreGlobals.ao_far_clip', 10)
-                cmds.setAttr('mentalcoreGlobals.ao_opacity', 0)
-                cmds.setAttr('mentalcoreGlobals.ao_vis_indirect', 0)
-                cmds.setAttr('mentalcoreGlobals.ao_vis_refl', 0)
-                cmds.setAttr('mentalcoreGlobals.ao_vis_refr', 1)
-                cmds.setAttr('mentalcoreGlobals.ao_vis_trans', 1)
-            except:
-                cmds.warning('NO MENTAL CORE LOADED!!!')
-                pass
-    
-            # Default Resolution
-            cmds.setAttr('defaultResolution.width', 1280)
-            cmds.setAttr('defaultResolution.height', 720)
-            cmds.setAttr('defaultResolution.pixelAspect', 1)
-            cmds.setAttr('defaultResolution.deviceAspectRatio', 1.7778)
-            print 'Default render settings initialized.'
+
+        # Set globals default resolution
+        cmds.setAttr('defaultResolution.width', self.renderWidth)
+        cmds.setAttr('defaultResolution.height', self.renderHeight)
+        cmds.setAttr('defaultResolution.pixelAspect', 1)
+        cmds.setAttr('defaultResolution.deviceAspectRatio', 1.7778)
+
+        self.lib.setRenderGlobals()
+        print 'Default render settings initialized.'

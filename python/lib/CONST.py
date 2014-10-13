@@ -3,22 +3,10 @@ Created by James Dunlop
 This is if you are using your own config and wish to add this application to it.
 It is mainly used for the api to set the base paths from and the debugging for the tool.
 """
-## Import base python stuff
-import sys, getpass
 #############################################
 ## CONFIG CONSTANTS
 #############################################
-## SOME CUSTOM FLAGS FOR THINGS TO DO OR USE
-DEBUGGING                       = True
-
-## SETUP BASE CONSTANTS FOR THE CONFIG
-USER_NAME                       = '%s' % getpass.getuser()
-## SHOT GUN BASE CONSTANTS
-SHOTGUN_CONFIG_NAME             = 'genericconfig'
-SHOTGUN_URL                     = 'https://mystudio.shotgunstudio.com'
-SHOTGUN_TOOLKIT_NAME            = 'Toolkit'
-SHOTGUN_TOOLKIT_API_KEY         = 'APIKEY'
-
+DEBUGGING            = True
 ### The following set the options that will show up for the artists to set.
 CAM_SETTINGS_OPTIONS = ['NURBS Curves',
                         'NURBS Surfaces',
@@ -95,3 +83,5 @@ PB_OPTIONS              = False
 PB_SEQUENCETIME         = False
 PB_SHOWORNAMENTS        = True
 PB_VIEWER               = True
+
+SHOTCAM_SUFFIX          = 'shotCam'
