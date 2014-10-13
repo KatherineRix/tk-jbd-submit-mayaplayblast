@@ -15,12 +15,14 @@ class InputPrompt(QtGui.QWidget):
     """
     def __init__(self, parent = None, label = '', defaultText = '', getSelected = True):
         QtGui.QWidget.__init__(self, parent)
-        self.parent = parent
-        self.mainLayout = QtGui.QVBoxLayout(self)
-        self.hLayout = QtGui.QHBoxLayout(self)
-        self.inputLabel = QtGui.QLabel('Turn Table Group:')
-        self.selInput = QtGui.QLineEdit(self)
-        self.getSelButton = QtGui.QPushButton('Update From Selected')
+        self.parent         = parent
+        self.mainLayout     = QtGui.QVBoxLayout(self)
+        self.hLayout        = QtGui.QHBoxLayout(self)
+        self.inputLabel     = QtGui.QLabel('Turn Table Group:')
+        self.selInput       = QtGui.QLineEdit(self)
+        self.selInput.setToolTip('You can type the name of the group you want to spin the camera around in here or use the button to the left to assign the group.')
+        self.getSelButton   = QtGui.QPushButton('Update From Selected')
+        self.getSelButton.setToolTip('Update the text field with the name of the selected group you want to spin the camera around. \nThis is generally the highest level grp for the geo to be reviewed.')
         self.getSelButton.pressed.connect(self.updateTextFromSelected)
         self.hLayout.addWidget(self.inputLabel)
         self.hLayout.addWidget(self.selInput)

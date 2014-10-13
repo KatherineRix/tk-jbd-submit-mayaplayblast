@@ -17,6 +17,10 @@ So before doing a tank update you'll need to remove or change these paths back t
 <br>
 <hr>
 #APPLICATION INSTALL NOTES:
+please refer to manual install location from docs here:
+https://toolkit.shotgunsoftware.com/entries/23797786#Apps%20in%20git%20%28and%20github%29
+I have found this to be the most reliable for cross platform install locations
+
 * **You must have the python-api installed for shotgun!**
 * You must uncomment and change the lines in the python/lib/CONST.py file to be the correct information for your shotgun setup!
 
@@ -29,9 +33,9 @@ So before doing a tank update you'll need to remove or change these paths back t
 ```
       tk-submit-maya-shotPlayblast:
 
-            location:                   {name: tk-jbd-submit-mayaplayblast, type: dev, path: 'path/to/install/directory'}
+            location:                   {"type": "manual", "name": "tk-jbd-submit-mayaplayblast", "version": "v0.0.1"}
             display_name:               .Publish TurnTable For Review...
-            cameraSuffix:               _shotCam
+            showOptions:                true
             isAsset:                    true
             movie_width:                1280
             movie_height:               720
@@ -45,6 +49,9 @@ So before doing a tank update you'll need to remove or change these paths back t
             upload_to_shotgun:          true
             version_number_padding:     3
 ```
+It is important to note here if you wish to expose the options for the playblast like in the images below use the value true in the showOptions. If you wish to just
+set some defaults and not have the artists change these use the CONST file to set the default on options and set the showOptions to false.
+1
 <br>
 <center>
 <img src = "http://www.anim83d.com/images/github/mpb_01.PNG"><br>

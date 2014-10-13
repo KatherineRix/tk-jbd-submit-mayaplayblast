@@ -12,15 +12,28 @@ configuration:
         optional_fields: "*"
         description: Template defining the output location of the work in progress movie file on the the file system. 
 
-    cameraSuffix:
-        type: str
-        default_value: _shotCam
-        description: Is this the suffix for the app to find the shot camera in a shot. Note this will need to be set for asset to though it's not used.
-    
+    showOptions:
+        type: bool
+        default_value: false
+        description: Use this to expose the camera seetings to the artist for them to
+                     choose what to turn on and off in the UI. If you turn this off
+                     You can use the CONST file for the settings the operators would
+                     normally turn on and off by using the default ON CONST eg
+                     CAM_SETTINGS_DEFAULT_ON
+                     VIEWPORT_SETTINGS_DEFAULT_ON
+                     RENDERER_SETTINGS_DEFAULT_ON
+
     isAsset:
         type: bool
         default_value: false
-        description: Is this an asset playblast for review? Or is it s a shot playblast for review?
+        description: Is this an asset playblast for review? Or is it s a shot playblast
+                     for review?
+
+    allowAssetTurnTableBuild:
+        type: bool
+        default_value: true
+        description: If this is an asset_step and you want to use the default turntable
+                     animation builder or not.
 
     upload_to_shotgun:
         type: bool
@@ -43,8 +56,10 @@ configuration:
         optional_fields: "*"
         description: Template defining the output location of the movie file on the the file system. 
                     For this template you can use all the fields defined in the template passed to the
-                    render_and_submit fields. In addition to these you can use the special fields width and height, which contain the resolution of the movie. 
-                    If the store_on_disk setting is false, this setting will still be required but will be used as a temporary location for processing before the file is uploaded to Shotgun.
+                    render_and_submit fields. In addition to these you can use the special fields width
+                    and height, which contain the resolution of the movie.
+                    If the store_on_disk setting is false, this setting will still be required but will
+                    be used as a temporary location for processing before the file is uploaded to Shotgun.
 
     movie_width:
         type: int
