@@ -6,19 +6,12 @@ Application to playblast assets or shots.
 
 ####Dependencies:<br>
 **https://github.com/shotgunsoftware/python-api**
-<br>
-####General application notes:<br>
-It is important to note using dev path will cause some **cross platform** issues because you'll end up with a hard coded path.<br>
-To avoid this you can copy the application into the studio/install/apps/app_store/ directory and use:<br>
-`location: {name: tk-jbd-submit-mayaplayblast, type: app_store, version: v0.0.1}`<br>
-**HOW EVER!**<br>
-*__This will cause tank updates to fail because the applications don't exist in the official app store__*<br>
-So before doing a tank update you'll need to remove or change these paths back to dev!<br>
-<br>
+
 <hr>
 #APPLICATION INSTALL NOTES:
-please refer to manual install location from docs here:
+Please refer to manual install location from docs here:
 https://toolkit.shotgunsoftware.com/entries/23797786#Apps%20in%20git%20%28and%20github%29
+
 I have found this to be the most reliable for cross platform install locations
 
 * **You must have the python-api installed for shotgun!**
@@ -44,7 +37,7 @@ I have found this to be the most reliable for cross platform install locations
 ```
 It is important to note here if you wish to expose the options for the playblast like in the images below use the value true in the showOptions. If you wish to just
 set some defaults and not have the artists change these use the CONST file to set the default on options and set the showOptions to false.
-
+See the wiki for more details..
 <br>
 <center>
 <img src = "http://www.anim83d.com/images/github/mpb_01.PNG"><br>
