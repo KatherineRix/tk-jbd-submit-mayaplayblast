@@ -15,6 +15,6 @@ This is with the showOptions set to true<br>
 ![](http://www.anim83d.com/images/github/pb_options.png)<br>
 
 **TurnTable:**<br>
-This is within the asset_step.yml and with the allowAssetTurnTableBuild set to true<br>
+isAsset is true and allowAssetTurnTableBuild is true and showOptions is false<br>
 ![](http://www.anim83d.com/images/github/pb_turntable.png)
 </center>
