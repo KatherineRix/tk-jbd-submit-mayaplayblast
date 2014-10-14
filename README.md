@@ -4,6 +4,7 @@ tk-submit_mayaplayblast
 
 Application to playblast assets or shots.
 <center>
+**Documentation:**<b>
 https://github.com/jamesbdunlop/tk-jbd-submit-mayaplayblast/wiki<br>
 
 **Compact:**<br>
