@@ -47,7 +47,6 @@ CAM_SETTINGS_DEFAULT_ON = ['Polygons',
                             'GPU Caches',
                             'Plugin Shapes',
                             'Image Planes',
-                            'NURBS Curves'
                             ]
 
 ### The following set the options that will show up for the artists to set for the viewport shading options.
