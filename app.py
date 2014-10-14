@@ -15,6 +15,8 @@ from tank.platform.qt import QtCore, QtGui
 from tank.platform import Application
 import tank.templatekey
 
+## TODO Check version on shotgun, if exists remove it and resubmit
+## TODO Progress bar on upload thread?
 
 class PlayBlastGenerator(Application):
     def init_app(self):
