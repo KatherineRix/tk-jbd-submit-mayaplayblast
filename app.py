@@ -6,6 +6,7 @@ Code for a maya playblast creator app that runs in maya
 """
 import os, sys, shutil
 from functools import partial
+import time
 ###################################
 ## Maya Imports                  ##
 import maya.cmds as cmds
@@ -25,9 +26,8 @@ try:
 except ImportError:
     cmds.warning('No configCONST avail... using python/lib CONST instead, please make sure your application CONST is set correctly for the config name.')
 
-## TODO Check version on shotgun, if exists remove it and resubmit
 ## TODO Progress bar on upload thread?
-
+## TODO Set all previous versions to viewed, or na so latest status is valid.
 class PlayBlastGenerator(Application):
     def init_app(self):
         # make sure that the context has an entity associated - otherwise it wont work!
@@ -88,6 +88,12 @@ class MainUI(QtGui.QWidget):
         MainUI builder
         """
         self.lib.log(app = self.app, method = '_buildUI', message = 'ValidContextFound.. building UI', printToLog = False, verbose = self.lib.DEBUGGING)
+        self.progressBar = QtGui.QProgressBar()
+        self.progressBar.setGeometry(QtCore.QRect(20, 10, 361, 23))
+        self.progressBar.setProperty("value", 0)
+        self.progressBar.setObjectName("progressBar")
+        self.progressBar.minimum = 1
+        self.progressBar.maximum = 100
         ############################################################################################
         ## Setup the main UI
         self.setStyleSheet("QGroupBox{background-color: #4B4B4B}")
@@ -826,7 +832,12 @@ class MainUI(QtGui.QWidget):
                 self.lib.log(app = self.app, message = "Existing published playblast found with same version number....", printToLog = False, verbose = self.lib.DEBUGGING)
                 self.reply = QtGui.QMessageBox.question(None, 'Existing PB Found..', "Existing playblast with this name found on local disk!\n Continue?", QtGui.QMessageBox.Ok, QtGui.QMessageBox.Cancel)
                 if self.reply == QtGui.QMessageBox.Ok:
-                    if not self._checkVersionExists(name = os.path.splitext(os.path.basename(publish_path))[0]):
+                    if self.upload.isChecked():
+                        if self._checkVersionExists(name = os.path.splitext(os.path.basename(publish_path))[0]):
+                            self.failed = QtGui.QMessageBox.question(None, 'FAILED', "Existing playblast version found in Shotgun Database!\nYou need to version this scene and try again!", QtGui.QMessageBox.Abort)
+                            if self.failed == QtGui.QMessageBox.Abort:
+                                return -1
+                    else:
                         ################################################
                         ## CHECK PERMS FOR THIS IT MIGHT NOT WORK !!
                         ################################################
@@ -834,16 +845,16 @@ class MainUI(QtGui.QWidget):
                             os.remove(self.osPathToPublishFile.replace('\\', '/'))
                             self._finishPlayblast(publish_path, width, height, store_on_disk, getFirstFrame, getLastFrame, comment, user, work_path)
                         except:
+                            cmds.warning('Failed to remove existing playblast from server.. please try to do so manually or version up the scene and try again.')
                             self.lib.log(app = self.app, method = '_setupPlayblast', message = 'FAILED: \tTo remove osPathToPublishFile', printToLog = False, verbose = self.lib.DEBUGGING)
-                            return -1
-                    else:
-                        self.failed = QtGui.QMessageBox.question(None, 'FAILED', "Existing playblast with this name found in shotgun. You need to version this scene and try again.", QtGui.QMessageBox.Ok)
-                        if self.failed == QtGui.QMessageBox.Ok:
                             return -1
                 else:
                     return -1
             else:
                 self._finishPlayblast(publish_path, width, height, store_on_disk, getFirstFrame, getLastFrame, comment, user, work_path)
+
+    def setProgress(self, progress):
+        self.progressBar.setValue(progress)
 
     def _finishPlayblast(self, publish_path, width, height, store_on_disk, getFirstFrame, getLastFrame, comment, user, work_path):
         ## Now do the playblast if the user selected okay or there wasn't a duplicate found.
@@ -890,26 +901,50 @@ class MainUI(QtGui.QWidget):
 
                 ## Uploading...
                 ## Now upload in a new thread and make our own event loop to wait for the thread to finish.
-                self.lib.log(app = self.app, method = '_finishPlayblast', message = 'Uploading mov to shotgun for review.', printToLog = False, verbose = self.lib.DEBUGGING)
-                cmds.headsUpMessage("Uploading playblast to shotgun for review this may take some time! Be patient...", time = 2)
+                self.progressBar.setValue(0)
+                self.progressBar.show()
 
+                self.lib.log(app = self.app, method = '_finishPlayblast', message = 'Uploading mov to shotgun for review.', printToLog = False, verbose = self.lib.DEBUGGING)
+
+                ######################################
+                ##### THE EVENT LOOP THREAD TO UPLOAD
                 event_loop = QtCore.QEventLoop()
                 self.lib.log(app = self.app, method = '_finishPlayblast', message = 'event_loop set...', printToLog = False, verbose = self.lib.DEBUGGING)
 
+                fileSize            = os.stat('%s' % publish_path)
+                fileInMB            = float(fileSize.st_size/1000000)
+                speed               = 100 # KBs 6mb per 60seconds approx
+                timeToUploadSecs    = (fileInMB/6)*60
+                step                = timeToUploadSecs/100
+                self.lib.log(app = self.app, method = '_finishPlayblast', message = 'step: %s' % step, printToLog = False, verbose = self.lib.DEBUGGING)
+
                 thread = self.lib.UploaderThread(self.app, sg_version, publish_path, self.upload_to_shotgun)
                 self.lib.log(app = self.app, method = '_finishPlayblast', message = 'thread set...', printToLog = False, verbose = self.lib.DEBUGGING)
+                thread.finished.connect(self.progressBar.hide)
                 thread.finished.connect(event_loop.quit)
                 thread.start()
-
-                self.lib.log(app = self.app, method = '_finishPlayblast', message = 'thread started set...', printToLog = False, verbose = self.lib.DEBUGGING)
-
+                x = 1
+                i = 0
+                while (x > 0):
+                    threadRunning = thread.isRunning()
+                    if threadRunning:
+                        self.progressBar.setValue(i)
+                        i = i + 1
+                        time.sleep(step)
+                    else:
+                        x = 0
+                self.lib.log(app = self.app, method = '_finishPlayblast', message = 'thread started...', printToLog = False, verbose = self.lib.DEBUGGING)
                 event_loop.exec_()
+
                 self.lib.log(app = self.app, method = '_finishPlayblast', message = 'event_loop.exec_...', printToLog = False, verbose = self.lib.DEBUGGING)
+                ######################################
+                ### THREAD FNISHED....
 
                 ## log any errors generated in the thread
                 for e in thread.get_errors():
                     self.app.log_error(e)
                     print e
+
                 ## Remove from file system if required
                 if not store_on_disk and os.path.exists(publish_path):
                     os.unlink(publish_path)
@@ -918,9 +953,10 @@ class MainUI(QtGui.QWidget):
                 if self.app.get_setting('isAsset'):
                     if self.deleteHrcGrp.isChecked():
                         cmds.delete('turnTable_hrc')
+
                 self.lib.log(app = self.app, method = '_finishPlayblast', message = 'Upload to shotgun finished.', printToLog = False, verbose = self.lib.DEBUGGING)
-                cmds.headsUpMessage("Playblast upload to shotgun complete!", time = 2)
                 cmds.warning('UPLOAD COMPLETE!')
+
             else:
                 cmds.warning('UPLOAD ABORTED! A VERSION WITH THIS FiLE NAME ALREADY EXISTS ON SHOTGUN! Plesse save a new version of your scene and try again!')
 
