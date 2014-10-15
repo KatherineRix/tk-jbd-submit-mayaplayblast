@@ -824,17 +824,22 @@ class MainUI(QtGui.QWidget):
             ## The playblast tool overwrites any playblasts it does with the same version name in the working directory.
             if os.path.exists(publish_path):
                 self.lib.log(app = self.app, message = "Existing published playblast found with same version number....", printToLog = False, verbose = self.lib.DEBUGGING)
-                self.reply = QtGui.QMessageBox.question(None, 'IMPORTANT!!!!!', "Existing published playblast found!!!!\nIf for some reason the previous blast didn't upload click okay to redo the playblast now.\nOtherwise CANCEL NOW and save a new version of your scene or you will end up with duplicates in shotgun!", QtGui.QMessageBox.Ok, QtGui.QMessageBox.Cancel)
+                self.reply = QtGui.QMessageBox.question(None, 'Existing PB Found..', "Existing playblast with this name found on local disk!\n Continue?", QtGui.QMessageBox.Ok, QtGui.QMessageBox.Cancel)
                 if self.reply == QtGui.QMessageBox.Ok:
-                    ################################################
-                    ## CHECK PERMS FOR THIS IT MIGHT NOT WORK !!
-                    ################################################
-                    try:
-                        os.remove(self.osPathToPublishFile.replace('\\', '/'))
-                        self._finishPlayblast(publish_path, width, height, store_on_disk, getFirstFrame, getLastFrame, comment, user, work_path)
-                    except:
-                        self.lib.log(app = self.app, method = '_setupPlayblast', message = 'FAILED: \tTo remove osPathToPublishFile', printToLog = False, verbose = self.lib.DEBUGGING)
-                        return -1
+                    if not self._checkVersionExists(name = os.path.splitext(os.path.basename(publish_path))[0]):
+                        ################################################
+                        ## CHECK PERMS FOR THIS IT MIGHT NOT WORK !!
+                        ################################################
+                        try:
+                            os.remove(self.osPathToPublishFile.replace('\\', '/'))
+                            self._finishPlayblast(publish_path, width, height, store_on_disk, getFirstFrame, getLastFrame, comment, user, work_path)
+                        except:
+                            self.lib.log(app = self.app, method = '_setupPlayblast', message = 'FAILED: \tTo remove osPathToPublishFile', printToLog = False, verbose = self.lib.DEBUGGING)
+                            return -1
+                    else:
+                        self.failed = QtGui.QMessageBox.question(None, 'FAILED', "Existing playblast with this name found in shotgun. You need to version this scene and try again.", QtGui.QMessageBox.Ok)
+                        if self.failed == QtGui.QMessageBox.Ok:
+                            return -1
                 else:
                     return -1
             else:
@@ -870,49 +875,54 @@ class MainUI(QtGui.QWidget):
 
             ## Now submit the version to shotgun
             self.lib.log(app = self.app, method = '_finishPlayblast', message = 'Submitting vesion info to shotgun...', printToLog = False, verbose = self.lib.DEBUGGING)
-            sg_version = self._submit_version(
-                                              path_to_movie     = publish_path,
-                                              store_on_disk     = store_on_disk,
-                                              first_frame       = getFirstFrame,
-                                              last_frame        = getLastFrame,
-                                              comment           = comment,
-                                              user              = user
-                                              )
-            self.lib.log(app = self.app, method = '_finishPlayblast', message = 'Version Submitted to shotgun successfully', printToLog = False, verbose = self.lib.DEBUGGING)
 
-            ## Uploading...
-            ## Now upload in a new thread and make our own event loop to wait for the thread to finish.
-            self.lib.log(app = self.app, method = '_finishPlayblast', message = 'Uploading mov to shotgun for review.', printToLog = False, verbose = self.lib.DEBUGGING)
-            cmds.headsUpMessage("Uploading playblast to shotgun for review this may take some time! Be patient...", time = 2)
+            ## Doing a double check here for existing version in shotgun just to be on the safe side.
+            if not self._checkVersionExists(name = os.path.splitext(os.path.basename(publish_path))[0]):
+                sg_version = self._submit_version(
+                                                  path_to_movie     = publish_path,
+                                                  store_on_disk     = store_on_disk,
+                                                  first_frame       = getFirstFrame,
+                                                  last_frame        = getLastFrame,
+                                                  comment           = comment,
+                                                  user              = user
+                                                  )
+                self.lib.log(app = self.app, method = '_finishPlayblast', message = 'Version Submitted to shotgun successfully', printToLog = False, verbose = self.lib.DEBUGGING)
 
-            event_loop = QtCore.QEventLoop()
-            self.lib.log(app = self.app, method = '_finishPlayblast', message = 'event_loop set...', printToLog = False, verbose = self.lib.DEBUGGING)
+                ## Uploading...
+                ## Now upload in a new thread and make our own event loop to wait for the thread to finish.
+                self.lib.log(app = self.app, method = '_finishPlayblast', message = 'Uploading mov to shotgun for review.', printToLog = False, verbose = self.lib.DEBUGGING)
+                cmds.headsUpMessage("Uploading playblast to shotgun for review this may take some time! Be patient...", time = 2)
 
-            thread = self.lib.UploaderThread(self.app, sg_version, publish_path, self.upload_to_shotgun)
-            self.lib.log(app = self.app, method = '_finishPlayblast', message = 'thread set...', printToLog = False, verbose = self.lib.DEBUGGING)
-            thread.finished.connect(event_loop.quit)
-            thread.start()
+                event_loop = QtCore.QEventLoop()
+                self.lib.log(app = self.app, method = '_finishPlayblast', message = 'event_loop set...', printToLog = False, verbose = self.lib.DEBUGGING)
 
-            self.lib.log(app = self.app, method = '_finishPlayblast', message = 'thread started set...', printToLog = False, verbose = self.lib.DEBUGGING)
+                thread = self.lib.UploaderThread(self.app, sg_version, publish_path, self.upload_to_shotgun)
+                self.lib.log(app = self.app, method = '_finishPlayblast', message = 'thread set...', printToLog = False, verbose = self.lib.DEBUGGING)
+                thread.finished.connect(event_loop.quit)
+                thread.start()
 
-            event_loop.exec_()
-            self.lib.log(app = self.app, method = '_finishPlayblast', message = 'event_loop.exec_...', printToLog = False, verbose = self.lib.DEBUGGING)
+                self.lib.log(app = self.app, method = '_finishPlayblast', message = 'thread started set...', printToLog = False, verbose = self.lib.DEBUGGING)
 
-            ## log any errors generated in the thread
-            for e in thread.get_errors():
-                self.app.log_error(e)
-                print e
-            ## Remove from file system if required
-            if not store_on_disk and os.path.exists(publish_path):
-                os.unlink(publish_path)
+                event_loop.exec_()
+                self.lib.log(app = self.app, method = '_finishPlayblast', message = 'event_loop.exec_...', printToLog = False, verbose = self.lib.DEBUGGING)
 
-            ## Remove turntable if option is selected
-            if self.app.get_setting('isAsset'):
-                if self.deleteHrcGrp.isChecked():
-                    cmds.delete('turnTable_hrc')
-            self.lib.log(app = self.app, method = '_finishPlayblast', message = 'Upload to shotgun finished.', printToLog = False, verbose = self.lib.DEBUGGING)
-            cmds.headsUpMessage("Playblast upload to shotgun complete!", time = 2)
-            cmds.warning('UPLOAD COMPLETE!')
+                ## log any errors generated in the thread
+                for e in thread.get_errors():
+                    self.app.log_error(e)
+                    print e
+                ## Remove from file system if required
+                if not store_on_disk and os.path.exists(publish_path):
+                    os.unlink(publish_path)
+
+                ## Remove turntable if option is selected
+                if self.app.get_setting('isAsset'):
+                    if self.deleteHrcGrp.isChecked():
+                        cmds.delete('turnTable_hrc')
+                self.lib.log(app = self.app, method = '_finishPlayblast', message = 'Upload to shotgun finished.', printToLog = False, verbose = self.lib.DEBUGGING)
+                cmds.headsUpMessage("Playblast upload to shotgun complete!", time = 2)
+                cmds.warning('UPLOAD COMPLETE!')
+            else:
+                cmds.warning('UPLOAD ABORTED! A VERSION WITH THIS FiLE NAME ALREADY EXISTS ON SHOTGUN! Plesse save a new version of your scene and try again!')
 
     def _setFrameRanges(self, isAsset):
         """
@@ -1005,6 +1015,32 @@ class MainUI(QtGui.QWidget):
             defaultRenderGlobals.endFrame.set(out_frame)
         else:
             raise tank.TankError("Don't know how to set current frame range for engine %s!" % engine)
+
+    def _checkVersionExists(self, name):
+        ## Instance the api for talking directly to shotgun.
+        try:
+            ## Try getting it from the default config CONST first
+            base_url        = configCONST.SHOTGUN_URL
+            script_name     = configCONST.SHOTGUN_TOOLKIT_NAME
+            api_key         = configCONST.SHOTGUN_TOOLKIT_API_KEY
+        except:
+            ## Else get from the lib CONST
+            base_url       = self.lib.SHOTGUN_URL
+            script_name    = self.lib.SHOTGUN_TOOLKIT_NAME
+            api_key        = self.lib.SHOTGUN_TOOLKIT_API_KEY
+
+        self.lib.log(app = self.app, method = '_checkVersionExists', message = 'base_url: %s' % base_url, verbose = self.lib.DEBUGGING)
+        self.lib.log(app = self.app, method = '_checkVersionExists', message = 'script_name: %s' % script_name, verbose = self.lib.DEBUGGING)
+        self.lib.log(app = self.app, method = '_checkVersionExists', message = 'api_key: %s' % api_key, verbose = self.lib.DEBUGGING)
+
+        self.sgsrv      = Shotgun(base_url = base_url, script_name = script_name, api_key = api_key, ensure_ascii=True, connect=True)
+        self.lib.log(app = self.app, method = '_checkVersionExists', message = 'self.sgsrv%s' % self.sgsrv, verbose = self.lib.DEBUGGING)
+
+        exists = self.sgsrv.find_one('Version', filters = [["code", "is", name]], fields = ['code'])
+        if exists:
+            return True
+        else:
+            return False
 
     def _submit_version(self, path_to_movie, store_on_disk, first_frame, last_frame, comment, user):
         """
