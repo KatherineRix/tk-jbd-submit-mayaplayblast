@@ -14,6 +14,16 @@ import maya.cmds as cmds
 from tank.platform.qt import QtCore, QtGui
 from tank.platform import Application
 import tank.templatekey
+try:
+    from shotgun_api3 import Shotgun
+except ImportError:
+    cmds.warning('You are missing the api3 dependency! Please install it now or make sure it is on the sys.path or python path!')
+###################################
+### tk-jbd-baseconfig imports    ##
+try:
+    import configCONST as configCONST
+except ImportError:
+    cmds.warning('No configCONST avail... using python/lib CONST instead, please make sure your application CONST is set correctly for the config name.')
 
 ## TODO Check version on shotgun, if exists remove it and resubmit
 ## TODO Progress bar on upload thread?
@@ -269,6 +279,15 @@ class MainUI(QtGui.QWidget):
         self.sizePercent.setRange(0, 100)
         self.sizePercent.setValue(75)
         #####################
+        ## Build the statusList Combobox
+        self.statusLabel            = QtGui.QLabel('Status')
+        self.statusList             = QtGui.QComboBox(self)
+        for each in self.lib.STATUS_LIST:
+            self.statusList.addItem(each)
+        status                      = self.app.get_setting('new_version_status')
+        index                       = self.statusList.findText(status)
+        self.statusList.setCurrentIndex(index)
+        #####################
         ## Build the upload button
         self.upload                 = QtGui.QRadioButton('Submit to shotgun?')
         self.upload.setStyleSheet('QRadioButton:indicator{background-color: #088A08}')
@@ -287,6 +306,9 @@ class MainUI(QtGui.QWidget):
         self.submissionlayout.addWidget(self.qualityPercent)
         self.submissionlayout.addWidget(self.sizeLabel)
         self.submissionlayout.addWidget(self.sizePercent)
+
+        self.submissionlayout.addWidget(self.statusLabel)
+        self.submissionlayout.addWidget(self.statusList)
 
         ## Check to see if the attr in the _step.yml is looking to upload to shotgun or not.
         ## If it is show the upload options and set the button to true
@@ -392,11 +414,14 @@ class MainUI(QtGui.QWidget):
         Shows and hides the comment groupBox if the upload radio button is true or false.
         """
         if self.upload.isChecked():
-             self.commentGroupBox.show()
-             self.upload.setStyleSheet('QRadioButton:indicator{background-color: #088A08}')
+            self.commentGroupBox.show()
+            self.upload.setStyleSheet('QRadioButton:indicator{background-color: #088A08}')
+            self.submissionGroupBox.setTitle('Submission to Shotgun')
+
         else:
             self.commentGroupBox.hide()
             self.upload.setStyleSheet('QRadioButton:indicator{background-color: #B40404}')
+            self.submissionGroupBox.setTitle('Local Playblast')
 
     def _getEditor(self):
         currentPanel = cmds.getPanel(withFocus = True)
@@ -846,27 +871,33 @@ class MainUI(QtGui.QWidget):
             ## Now submit the version to shotgun
             self.lib.log(app = self.app, method = '_finishPlayblast', message = 'Submitting vesion info to shotgun...', printToLog = False, verbose = self.lib.DEBUGGING)
             sg_version = self._submit_version(
-                                              path_to_movie = publish_path,
-                                              store_on_disk = store_on_disk,
-                                              first_frame = getFirstFrame,
-                                              last_frame = getLastFrame,
-                                              comment = comment,
-                                              user = user
+                                              path_to_movie     = publish_path,
+                                              store_on_disk     = store_on_disk,
+                                              first_frame       = getFirstFrame,
+                                              last_frame        = getLastFrame,
+                                              comment           = comment,
+                                              user              = user
                                               )
             self.lib.log(app = self.app, method = '_finishPlayblast', message = 'Version Submitted to shotgun successfully', printToLog = False, verbose = self.lib.DEBUGGING)
+
             ## Uploading...
             ## Now upload in a new thread and make our own event loop to wait for the thread to finish.
             self.lib.log(app = self.app, method = '_finishPlayblast', message = 'Uploading mov to shotgun for review.', printToLog = False, verbose = self.lib.DEBUGGING)
             cmds.headsUpMessage("Uploading playblast to shotgun for review this may take some time! Be patient...", time = 2)
+
             event_loop = QtCore.QEventLoop()
             self.lib.log(app = self.app, method = '_finishPlayblast', message = 'event_loop set...', printToLog = False, verbose = self.lib.DEBUGGING)
+
             thread = self.lib.UploaderThread(self.app, sg_version, publish_path, self.upload_to_shotgun)
             self.lib.log(app = self.app, method = '_finishPlayblast', message = 'thread set...', printToLog = False, verbose = self.lib.DEBUGGING)
             thread.finished.connect(event_loop.quit)
             thread.start()
+
             self.lib.log(app = self.app, method = '_finishPlayblast', message = 'thread started set...', printToLog = False, verbose = self.lib.DEBUGGING)
+
             event_loop.exec_()
             self.lib.log(app = self.app, method = '_finishPlayblast', message = 'event_loop.exec_...', printToLog = False, verbose = self.lib.DEBUGGING)
+
             ## log any errors generated in the thread
             for e in thread.get_errors():
                 self.app.log_error(e)
@@ -922,20 +953,17 @@ class MainUI(QtGui.QWidget):
         Returns (in, out) frames from shotgun.
         """
         # we know that this exists now (checked in init)
-        entity = self.app.context.entity
+        entity          = self.app.context.entity
 
-        sg_entity_type = self.app.context.entity["type"]
-        sg_filters = [["id", "is", entity["id"]]]
+        sg_entity_type  = self.app.context.entity["type"]
+        sg_filters      = [["id", "is", entity["id"]]]
 
-        sg_in_field = self.app.get_setting("sg_in_frame_field")
-        sg_out_field = self.app.get_setting("sg_out_frame_field")
-        fields = [sg_in_field, sg_out_field]
+        sg_in_field     = self.app.get_setting("sg_in_frame_field")
+        sg_out_field    = self.app.get_setting("sg_out_frame_field")
+        fields          = [sg_in_field, sg_out_field]
 
-        #import time
-        #start = time.time()
-        data = self.app.shotgun.find_one(sg_entity_type, filters=sg_filters, fields=fields)
-        #data = self.dbWrap.find_one(self.sg, sg_entity_type, sg_filters, fields)
-        #print 'TIME: %s' % (time.time()-start)
+        data            = self.app.shotgun.find_one(sg_entity_type, filters=sg_filters, fields=fields)
+
         # check if fields exist!
         if sg_in_field not in data:
             raise tank.TankError("Configuration error: Your current context is connected to a Shotgun "
@@ -983,24 +1011,26 @@ class MainUI(QtGui.QWidget):
         Create a version in Shotgun for this path and linked to this publish.
         """
         # get current shotgun user
-        current_user = user
-        name = os.path.splitext(os.path.basename(path_to_movie))[0]
+        current_user    = user
+        name            = os.path.splitext(os.path.basename(path_to_movie))[0]
         # create a name for the version based on the file name grab the file name, strip off extension
         # do some replacements
-        name = name.replace("_", " ")
+        name            = name.replace("_", " ")
         # and capitalize
-        name = name.capitalize()
+        name            = name.capitalize()
         data = {
-            "code": name,
-            "entity": self.app.context.entity,
-            "sg_task":  self.app.context.task,
-            "user": current_user,
-            "created_by": current_user,
-            "project": self.app.context.project,
-            "description": comment
+            "code":         name,
+            "entity":       self.app.context.entity,
+            "sg_task":      self.app.context.task,
+            "user":         current_user,
+            "created_by":   current_user,
+            "project":      self.app.context.project,
+            "description":  comment,
+            "sg_status_list": self.statusList.currentText()
         }
         if store_on_disk:
             data["sg_path_to_movie"] = path_to_movie
+
         sg_version = self.app.tank.shotgun.create("Version", data)
         return sg_version
 
@@ -1039,9 +1069,9 @@ class MainUI(QtGui.QWidget):
         startTime       = first_frame,
         endTime         = last_frame + 1,
         forceOverwrite  = self.lib.PB_FORCEOVERWRITE,
-        format          = self.lib.PLAYBLAST_FORMAT,
+        format          = self.lib.PB_FORMAT,
         framePadding    = self.lib.PB_FRAMEPADDING,
-        offScreen       = self.lib.PLAYBLAST_OFFSCREEN,
+        offScreen       = self.lib.PB_OFFSCREEN,
         options         = self.lib.PB_OPTIONS,
         percent         = self.sizePercent.value(),
         quality         = self.qualityPercent.value(),
