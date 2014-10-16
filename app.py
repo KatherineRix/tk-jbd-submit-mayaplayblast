@@ -88,12 +88,6 @@ class MainUI(QtGui.QWidget):
         MainUI builder
         """
         self.lib.log(app = self.app, method = '_buildUI', message = 'ValidContextFound.. building UI', printToLog = False, verbose = self.lib.DEBUGGING)
-        self.progressBar = QtGui.QProgressBar()
-        self.progressBar.setGeometry(QtCore.QRect(20, 10, 361, 23))
-        self.progressBar.setProperty("value", 0)
-        self.progressBar.setObjectName("progressBar")
-        self.progressBar.minimum = 1
-        self.progressBar.maximum = 100
         ############################################################################################
         ## Setup the main UI
         self.setStyleSheet("QGroupBox{background-color: #4B4B4B}")
@@ -901,7 +895,7 @@ class MainUI(QtGui.QWidget):
 
                 ## Uploading...
                 ## Now upload in a new thread and make our own event loop to wait for the thread to finish.
-                self.progressBar.setValue(0)
+                self.progressBar        = self.lib.ProgressBarUI()
                 self.progressBar.show()
 
                 self.lib.log(app = self.app, method = '_finishPlayblast', message = 'Uploading mov to shotgun for review.', printToLog = False, verbose = self.lib.DEBUGGING)
@@ -918,7 +912,7 @@ class MainUI(QtGui.QWidget):
                 step                = timeToUploadSecs/100
                 self.lib.log(app = self.app, method = '_finishPlayblast', message = 'step: %s' % step, printToLog = False, verbose = self.lib.DEBUGGING)
 
-                thread = self.lib.UploaderThread(self.app, sg_version, publish_path, self.upload_to_shotgun)
+                thread              = self.lib.UploaderThread(self.app, sg_version, publish_path, self.upload_to_shotgun)
                 self.lib.log(app = self.app, method = '_finishPlayblast', message = 'thread set...', printToLog = False, verbose = self.lib.DEBUGGING)
                 thread.finished.connect(self.progressBar.hide)
                 thread.finished.connect(event_loop.quit)
@@ -928,7 +922,7 @@ class MainUI(QtGui.QWidget):
                 while (x > 0):
                     threadRunning = thread.isRunning()
                     if threadRunning:
-                        self.progressBar.setValue(i)
+                        self.progressBar.updateProgress(i, os.path.splitext(os.path.basename(publish_path))[0])
                         i = i + 1
                         time.sleep(step)
                     else:
@@ -1132,6 +1126,11 @@ class MainUI(QtGui.QWidget):
 
         ############################
         ## Now do the main playblast
+        if self.upload_to_shotgun:
+            viewer = False
+        else:
+            viewer = self.lib.PB_VIEWER
+
         cmds.playblast(
         filename        = work_path,
         activeEditor    = self.lib.PB_ACTIVEEDITOR,
@@ -1149,7 +1148,7 @@ class MainUI(QtGui.QWidget):
         quality         = self.qualityPercent.value(),
         sequenceTime    = self.lib.PB_SEQUENCETIME,
         showOrnaments   = self.lib.PB_SHOWORNAMENTS,
-        viewer          = self.lib.PB_VIEWER,
+        viewer          = viewer,
         widthHeight     = [width, height],
         sound           = sound
         )
