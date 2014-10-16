@@ -4,6 +4,11 @@ tk-submit_mayaplayblast
 
 Application to playblast assets or shots.
 <center>
+
+![](http://www.anim83d.com/images/github/pb_statusList.png)
+Updated for a status list selection missing from the below screenshots<br>'
+
+
 **Documentation:**<b>
 https://github.com/jamesbdunlop/tk-jbd-submit-mayaplayblast/wiki<br>
 
