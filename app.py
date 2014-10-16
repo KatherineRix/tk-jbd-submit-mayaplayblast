@@ -719,8 +719,19 @@ class MainUI(QtGui.QWidget):
                         for eachSetting in self.viewportRadioButtons:
                             if eachSetting.text() == 'SmoothShade All':
                                 eachSetting.setChecked(True)
+                            if eachSetting.text()  == 'WireFrame':
+                                eachSetting.setEnabled(False)
+                            if eachSetting.text()  == 'Bounding Box':
+                                eachSetting.setEnabled(False)
+
                     else:
                         cmds.modelEditor(self.editor, edit = True, displayTextures = False)
+                        for eachSetting in self.viewportRadioButtons:
+                            if eachSetting.text()  == 'WireFrame':
+                                eachSetting.setEnabled(True)
+                            if eachSetting.text()  == 'Bounding Box':
+                                eachSetting.setEnabled(True)
+
                 if eachSetting.text() == 'WireFrame':
                     if eachSetting.isChecked():
                         cmds.modelEditor(self.editor, edit = True, displayAppearance = "wireframe")
