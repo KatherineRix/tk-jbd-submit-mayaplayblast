@@ -3,6 +3,7 @@ Copyright (c) 2013 James Dunlop
 ----------------------------------------------------
 
 Code for a maya playblast creator app that runs in maya
+This is not a shotgun supported app_store application.
 """
 import os, sys, shutil
 from functools import partial
@@ -26,8 +27,9 @@ try:
 except ImportError:
     cmds.warning('No configCONST avail... using python/lib CONST instead, please make sure your application CONST is set correctly for the config name.')
 
-## TODO Progress bar on upload thread?
 ## TODO Set all previous versions to viewed, or na so latest status is valid.
+
+
 class PlayBlastGenerator(Application):
     def init_app(self):
         # make sure that the context has an entity associated - otherwise it wont work!
