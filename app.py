@@ -57,6 +57,7 @@ class MainUI(QtGui.QWidget):
         QtGui.QWidget.__init__(self)
         ## The app for the UI to use...
         self.app = app
+        self.EXISTSWARNING = 'UPLOAD ABORTED! A VERSION WITH THIS FiLE NAME ALREADY EXISTS ON DISK! Either delete the version and try again, or  save a new version of your scene and try again!'
         ## Grab the library python stuff from lib
         self.lib = self.app.import_module("lib")
         self.lib.log(self.app, method = 'Main_UI', message = 'INIT PlayBlastGenerator UI', printToLog = False, verbose = self.lib.DEBUGGING)
@@ -798,6 +799,7 @@ class MainUI(QtGui.QWidget):
             self.lib.log(app = self.app, method = '_setupPlayblast', message = 'QtGui.QMessageBox.Ok accepted', printToLog = False, verbose = self.lib.DEBUGGING)
             self._setFrameRanges(isAsset)
             self.lib.log(app = self.app, method = '_setupPlayblast', message = '_setFrameRanges finished', printToLog = False, verbose = self.lib.DEBUGGING)
+
             ## Now setup the output path for the mov
             scene_path = os.path.abspath(cmds.file(query=True, sn= True))
             try:
@@ -805,10 +807,16 @@ class MainUI(QtGui.QWidget):
             except:
                 QtGui.QMessageBox.information(None, "Aborted...", 'Please save your scene first before continuing. And relaunch the playblast tool...')
                 return -1
-            publish_path_template = self.app.get_template("movie_path_template")
-            publish_path = publish_path_template.apply_fields(fields)
-            work_path_template = self.app.get_template("movie_workpath_template")
-            work_path = work_path_template.apply_fields(fields)
+
+            self.lib.log(app = self.app, method = '_setupPlayblast', message = 'fields: %s' % fields, printToLog = False, verbose = self.lib.DEBUGGING)
+            publish_path_template   = self.app.get_template("movie_path_template")
+            publish_path            = publish_path_template.apply_fields(fields)
+            work_path_template      = self.app.get_template("movie_workpath_template")
+            work_path               = work_path_template.apply_fields(fields)
+
+            self.lib.log(app = self.app, message = 'publish_path_template: %s' % publish_path_template, printToLog = False, verbose = self.lib.DEBUGGING)
+            self.lib.log(app = self.app, message = 'publish_path: %s' % publish_path, printToLog = False, verbose = self.lib.DEBUGGING)
+            self.lib.log(app = self.app, message = 'work_path_template: %s' % work_path_template, printToLog = False, verbose = self.lib.DEBUGGING)
             self.lib.log(app = self.app, message = 'work_path: %s' % work_path, printToLog = False, verbose = self.lib.DEBUGGING)
 
             if sys.platform == 'win32':
@@ -837,28 +845,9 @@ class MainUI(QtGui.QWidget):
 
             ## Now check for existing playblast. We check the publish folder because the working file gets moved into publish on upload.
             ## The playblast tool overwrites any playblasts it does with the same version name in the working directory.
-            if os.path.exists(publish_path):
-                self.lib.log(app = self.app, message = "Existing published playblast found with same version number....", printToLog = False, verbose = self.lib.DEBUGGING)
-                self.reply = QtGui.QMessageBox.question(None, 'Existing PB Found..', "Existing playblast with this name found on local disk!\n Continue?", QtGui.QMessageBox.Ok, QtGui.QMessageBox.Cancel)
-                if self.reply == QtGui.QMessageBox.Ok:
-                    if self.upload.isChecked():
-                        if self._checkVersionExists(name = os.path.splitext(os.path.basename(publish_path))[0]):
-                            self.failed = QtGui.QMessageBox.question(None, 'FAILED', "Existing playblast version found in Shotgun Database!\nYou need to version this scene and try again!", QtGui.QMessageBox.Abort)
-                            if self.failed == QtGui.QMessageBox.Abort:
-                                return -1
-                    else:
-                        ################################################
-                        ## CHECK PERMS FOR THIS IT MIGHT NOT WORK !!
-                        ################################################
-                        try:
-                            os.remove(self.osPathToPublishFile.replace('\\', '/'))
-                            self._finishPlayblast(publish_path, width, height, store_on_disk, getFirstFrame, getLastFrame, comment, user, work_path)
-                        except:
-                            cmds.warning('Failed to remove existing playblast from server.. please try to do so manually or version up the scene and try again.')
-                            self.lib.log(app = self.app, method = '_setupPlayblast', message = 'FAILED: \tTo remove osPathToPublishFile', printToLog = False, verbose = self.lib.DEBUGGING)
-                            return -1
-                else:
-                    return -1
+            if self._checkVersionExists(name = os.path.splitext(os.path.basename(publish_path))[0]):
+                cmds.warning(self.EXISTSWARNING)
+                return -1
             else:
                 self._finishPlayblast(publish_path, width, height, store_on_disk, getFirstFrame, getLastFrame, comment, user, work_path)
 
@@ -922,8 +911,8 @@ class MainUI(QtGui.QWidget):
 
                 fileSize            = os.stat('%s' % publish_path)
                 fileInMB            = float(fileSize.st_size/1000000)
-                speed               = 100 # KBs 6mb per 60seconds approx
-                timeToUploadSecs    = (fileInMB/6)*60
+                ##speed : 100 KBs 6mb per 60seconds approx
+                timeToUploadSecs    = (fileInMB/6)*100
                 step                = timeToUploadSecs/100
                 self.lib.log(app = self.app, method = '_finishPlayblast', message = 'step: %s' % step, printToLog = False, verbose = self.lib.DEBUGGING)
 
@@ -967,7 +956,7 @@ class MainUI(QtGui.QWidget):
                 cmds.warning('UPLOAD COMPLETE!')
 
             else:
-                cmds.warning('UPLOAD ABORTED! A VERSION WITH THIS FiLE NAME ALREADY EXISTS ON SHOTGUN! Plesse save a new version of your scene and try again!')
+                cmds.warning(self.EXISTSWARNING)
 
     def _setFrameRanges(self, isAsset):
         """
