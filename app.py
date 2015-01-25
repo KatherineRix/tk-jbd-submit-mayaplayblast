@@ -40,6 +40,8 @@ class PlayBlastGenerator(Application):
                                  "an entity as part of the context in order to work.")
         getDisplayName = self.get_setting('display_name')
         self.engine.register_command(getDisplayName, self.run_app)
+        self.lib = self.import_module("lib")
+        self.lib.log(self, method = 'run_app', message = '%s Loaded...' % getDisplayName, verbose = self.lib.DEBUGGING)
 
     def run_app(self):
         getDisplayName = self.get_setting('display_name')
