@@ -873,7 +873,7 @@ class MainUI(QtGui.QWidget):
             except:
                 self.lib.log(app = self.app, method = '_setupPlayblast', message = 'FAILED: \tTo rename osPathToWorkFile to osPathToPublishFile', printToLog = False, verbose = self.lib.DEBUGGING)
                 ## This could fail because the process is in use, and not the fact a freaking published file exists, due to maya trying to open the playblast once it's done!
-                ## So a quick check here to make sure it doesn't exist.. if it doesn't and it failed COPY it instead. Fucking maya...
+                ## So a quick check here to make sure it doesn't exist.. if it doesn't and it failed COPY it instead. FU maya...
                 if not os.path.exists(publish_path):
                     self.lib.log(app = self.app, method = '_setupPlayblast', message = 'FAILED: \tTo rename because file is IN USE. Using shutil to copy instead.', printToLog = False, verbose = self.lib.DEBUGGING)
                     shutil.copyfile(self.osPathToWorkFile.replace('\\', '/'), self.osPathToPublishFile.replace('\\', '/'))
@@ -1135,27 +1135,28 @@ class MainUI(QtGui.QWidget):
         else:
             viewer = self.lib.PB_VIEWER
 
+        self.lib.log(self.app, method = '_render_pb_in_maya', message = 'Playblasing to work_path: %s' % work_path, printToLog = False, verbose = self.lib.DEBUGGING)
         cmds.playblast(
-        filename        = work_path,
-        activeEditor    = self.lib.PB_ACTIVEEDITOR,
-        clearCache      = self.lib.PB_CLEARCACHE,
-        combineSound    = self.lib.PB_COMBINESOUND,
-        compression     = self.lib.PB_COMPRESSION,
-        startTime       = first_frame,
-        endTime         = last_frame + 1,
-        forceOverwrite  = self.lib.PB_FORCEOVERWRITE,
-        format          = self.lib.PB_FORMAT,
-        framePadding    = self.lib.PB_FRAMEPADDING,
-        offScreen       = self.lib.PB_OFFSCREEN,
-        options         = self.lib.PB_OPTIONS,
-        percent         = self.sizePercent.value(),
-        quality         = self.qualityPercent.value(),
-        sequenceTime    = self.lib.PB_SEQUENCETIME,
-        showOrnaments   = self.lib.PB_SHOWORNAMENTS,
-        viewer          = viewer,
-        widthHeight     = [width, height],
-        sound           = sound
-        )
+                        filename        = work_path,
+                        activeEditor    = self.lib.PB_ACTIVEEDITOR,
+                        clearCache      = self.lib.PB_CLEARCACHE,
+                        combineSound    = self.lib.PB_COMBINESOUND,
+                        compression     = self.lib.PB_COMPRESSION,
+                        startTime       = first_frame,
+                        endTime         = last_frame + 1,
+                        forceOverwrite  = self.lib.PB_FORCEOVERWRITE,
+                        format          = self.lib.PB_FORMAT,
+                        framePadding    = self.lib.PB_FRAMEPADDING,
+                        offScreen       = self.lib.PB_OFFSCREEN,
+                        options         = self.lib.PB_OPTIONS,
+                        percent         = self.sizePercent.value(),
+                        quality         = self.qualityPercent.value(),
+                        sequenceTime    = self.lib.PB_SEQUENCETIME,
+                        showOrnaments   = self.lib.PB_SHOWORNAMENTS,
+                        viewer          = viewer,
+                        widthHeight     = [width, height],
+                        sound           = sound
+                        )
 
     def _setupRenderGlobals(self):
         """
