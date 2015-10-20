@@ -6,7 +6,9 @@ Code for a maya playblast creator app that runs in maya
 """
 
 from tank.platform.qt import QtCore, QtGui
-import time
+import logging
+logger = logging.getLogger(__name__)
+
 
 class UploaderThread(QtCore.QThread):
     """
@@ -38,6 +40,6 @@ class UploaderThread(QtCore.QThread):
             try:
                 self._app.tank.shotgun.upload("Version", self._version["id"], self._path_to_movie, "sg_uploaded_movie")
             except Exception, e:
-                print 'UploaderThread: Movie upload to Shotgun failed: %s' % e
+                logger.warning('UploaderThread: Movie upload to Shotgun failed: %s' % e)
                 self._errors.append("Movie upload to Shotgun failed: %s" % e)
                 upload_error = True
